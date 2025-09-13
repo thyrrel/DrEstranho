@@ -1,0 +1,35 @@
+name: dr_estranho
+description: >
+  Nano IA gestora de testes e validações da N.O.V.A., operando na DimensãoEspelhada.
+  Simula agentes, monitora fluxos, invoca ferramentas externas e decide quando promover módulos à realidade principal.
+
+version: 0.1.0
+publish_to: "none"
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  # Core
+  collection: ^1.18.0
+  meta: ^1.10.0
+
+  # Comunicação e rede
+  udp: ^3.0.0
+  http: ^1.2.0
+
+  # Serialização
+  json_annotation: ^4.8.1
+
+  # Logs e utilitários
+  logging: ^1.2.0
+  path: ^1.9.0
+
+dev_dependencies:
+  build_runner: ^2.4.6
+  json_serializable: ^6.7.1
+  test: ^1.24.0
+
+# Diretórios padrão
+flutter:
+  uses-material-design: false
