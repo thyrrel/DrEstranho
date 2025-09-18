@@ -1,0 +1,35 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🛠️ Execucao.yml - Invocação dos artefatos mágicos e execução dos rituais  ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: Ritual Execution
+
+on:
+  workflow_dispatch:
+
+jobs:
+  executar_rituais:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout dos instrumentos
+        uses: actions/checkout@v3
+
+      - name: 🧙 Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: 🔮 Executar gerador ritualístico
+        run: dart run bin/gerador_ritualico.dart
+
+      - name: 📜 Migrar rituais para grimório
+        run: dart run bin/migrador_grimorio.dart
+
+      - name: 🔐 Selar rituais aprovados
+        run: dart run bin/selador_demoníaco.dart
+
+# Sugestões
+# - 🔁 Rodar execuções em paralelo com feedback visual
+# - 🧩 Modularizar artefatos para reuso em múltiplos planos
+# - 🧪 Validar saída e registrar histórico de execução
+
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
