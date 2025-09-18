@@ -1,0 +1,1 @@
+Inicie a integração com APIs ocultas usando integrador.dart, sincronize entidades mágicas com sincronizador.dart e monitore eventos extraplanares com monitor_eventos.dart. Autentique com assinatura ritualística e registre todos os eventos com timestamp arcano. Retorne status de conexão e entidades sincronizadas.
