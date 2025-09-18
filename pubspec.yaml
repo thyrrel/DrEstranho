@@ -1,35 +1,24 @@
-name: dr_estranho
-description: >
-  Nano IA gestora de testes e validações da N.O.V.A., operando na DimensãoEspelhada.
-  Simula agentes, monitora fluxos, invoca ferramentas externas e decide quando promover módulos à realidade principal.
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📜 pubspec.yaml - Integrações com planos ocultos e APIs externas           ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-version: 0.1.0
-publish_to: "none"
+name: extraplanares
+description: Integrações com APIs, serviços externos e planos ocultos
+version: 1.0.0
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: '>=2.18.0 <4.0.0'
 
 dependencies:
-  # Core
-  collection: ^1.18.0
-  meta: ^1.10.0
-
-  # Comunicação e rede
-  udp: ^3.0.0
-  http: ^1.2.0
-
-  # Serialização
+  http: ^1.1.0
   json_annotation: ^4.8.1
+  args: ^2.3.0
 
-  # Logs e utilitários
-  logging: ^1.2.0
-  path: ^1.9.0
+# Sugestões
+# - 🌐 Comunicação com planos externos via REST
+# - 🧬 Serialização e desserialização de entidades mágicas
+# - 🔐 Autenticação ritualística para acesso seguro
+# - 📡 Monitoramento de eventos extraplanares
 
-dev_dependencies:
-  build_runner: ^2.4.6
-  json_serializable: ^6.7.1
-  test: ^1.24.0
-
-# Diretórios padrão
-flutter:
-  uses-material-design: false
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
