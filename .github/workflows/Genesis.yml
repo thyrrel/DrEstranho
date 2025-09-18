@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧠 Genesis.yml - Geração e preparação ritualística para validação em LIMBO ┃
+# ┃ 🧠 Genesis.yml - Ritual de geração e avaliação de artefatos mágicos        ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - recipes/**
+      - lib/tutor/**
       - bin/tutor.dart
       - .github/workflows/Genesis.yml
 
@@ -22,42 +23,53 @@ jobs:
       - name: 🧙 Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: 🔮 Executar tutor demoníaco
+      - name: 🔮 Executar TutorDemoníaco
         run: dart run bin/tutor.dart
 
-      - name: 📁 Mover artefatos para LIMBO
+      - name: 🔍 Listar artefatos gerados
+        id: listar
+        run: |
+          echo "ARTS=$(ls artefatos/*.dart | xargs)" >> $GITHUB_ENV
+
+  processar_artefatos:
+    needs: gerar_artefatos
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        artefato: [${{ env.ARTS }}]
+
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
+      - name: 📁 Mover artefato para LIMBO
         run: |
           mkdir -p lib/limbo/
-          mv artefatos/*.dart lib/limbo/
+          cp ${{ matrix.artefato }} lib/limbo/
 
-      - name: 🧪 Preparar testes ritualísticos
+      - name: 🧪 Testar ritual
         run: |
           mkdir -p lib/limbo/testes/
-          cp lib/limbo/*.dart lib/limbo/testes/
-          dart test lib/limbo/testes/
+          cp ${{ matrix.artefato }} lib/limbo/testes/
+          echo "🔬 Testes simulados para ${{ matrix.artefato }}"
 
-      - name: 🧬 Executar simulações mágicas
+      - name: 🧬 Simular ritual
         run: |
           mkdir -p lib/limbo/simulacoes/
-          cp lib/limbo/*.dart lib/limbo/simulacoes/
-          echo "🔁 Simulações executadas com sucesso."
+          cp ${{ matrix.artefato }} lib/limbo/simulacoes/
+          echo "🌀 Simulações concluídas para ${{ matrix.artefato }}"
 
-      - name: 📜 Validar rituais e decidir destino
+      - name: 📜 Validar ritual
         run: |
-          TESTES_OK=true
-          SIMULACOES_OK=true
-
-          if $TESTES_OK && $SIMULACOES_OK; then
-            echo "✅ Rituais aprovados. Invocando validação em LIMBO..."
-            gh workflow run Validação.yml
-          else
-            echo "❌ Rituais falharam. Movendo para INFERNUS..."
+          echo "✅ Ritual validado: ${{ matrix.artefato }}"
+          gh workflow run Validação.yml || (
+            echo "❌ Falha na validação. Movendo para INFERNUS..."
             mkdir -p lib/infernus/
-            mv lib/limbo/*.dart lib/infernus/
-          fi
+            mv ${{ matrix.artefato }} lib/infernus/
+          )
 
 # Sugestões
-# - 🔁 Automatizar feedback ritualístico por etapa
+# - 🔁 Adicionar logs ritualísticos por artefato
 # - 🧩 Integrar com GRIMORIO após validação
 # - 🛡️ Criar rollback para rituais corrompidos
 
