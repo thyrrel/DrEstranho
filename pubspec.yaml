@@ -1,0 +1,24 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📜 pubspec.yaml - Plano de testes e validação de rituais antes do selamento┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: limbo
+description: Plano intermediário onde rituais são testados antes de selar
+version: 1.0.0
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+
+dependencies:
+  test: ^1.24.0
+  args: ^2.3.0
+  yaml: ^3.1.2
+
+# Sugestões
+# - 🧪 Testes unitários e de integração para rituais complexos
+# - 🛡️ Validação de segurança arcana antes da execução
+# - 📊 Geração de relatórios de falhas e inconsistências
+# - 🔁 Simulação de execuções em ambientes isolados
+
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
