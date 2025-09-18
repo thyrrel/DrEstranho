@@ -1,41 +1,36 @@
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🧠 tutor.dart - Executor de receitas ritualísticas e gerador de artefatos  ┃
+// ┃ 😈 bin/tutor.dart - Invocador de rituais individuais via GitHub Actions   ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
-import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as p;
+import 'package:tutor/tutor_demoniaco.dart';
+import 'package:tutor/ritual_index.dart';
 
 void main(List<String> args) {
-  final receitasDir = Directory('recipes');
-  if (!receitasDir.existsSync()) {
-    stderr.writeln('❌ Diretório de receitas não encontrado.');
+  if (args.isEmpty) {
+    stderr.writeln('❌ Nenhum arquivo de ritual informado.');
     exit(1);
   }
 
-  final arquivos = receitasDir.listSync().whereType<File>().toList();
-  if (arquivos.isEmpty) {
-    stderr.writeln('⚠️ Nenhuma receita ritualística encontrada.');
-    exit(0);
+  final caminho = args.first;
+  final arquivo = File(caminho);
+
+  if (!arquivo.existsSync()) {
+    stderr.writeln('❌ Arquivo não encontrado: $caminho');
+    exit(1);
   }
 
-  for (final arquivo in arquivos) {
-    final nome = p.basename(arquivo.path);
-    stdout.writeln('🔮 Processando receita: $nome');
+  final nome = p.basenameWithoutExtension(caminho);
+  final conteudo = arquivo.readAsStringSync();
 
-    final conteudo = arquivo.readAsStringSync();
-    final ritual = loadYaml(conteudo);
+  // Simula preenchimento do ritualIndex
+  ritualIndex[nome] = {
+    'status': 'aprovado',
+    'autor': 'Tiago',
+    'conteudo': conteudo,
+  };
 
-    // Simulação de geração de artefato
-    final artefato = File('artefatos/${nome.replaceAll('.yaml', '.dart')}');
-    artefato.createSync(recursive: true);
-    artefato.writeAsStringSync('// Artefato gerado a partir de $nome\n');
-
-    stdout.writeln('✅ Artefato gerado: ${artefato.path}');
-  }
-
-  stdout.writeln('🎯 Geração ritualística concluída.');
+  final tutor = TutorDemoníaco();
+  tutor.promoverTodos();
 }
-
-// ✍️ byThyrrel  
-// 💡 Formato grimório técnico seguro e elegante
