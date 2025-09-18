@@ -1,1 +1,16 @@
-Execute o ritual gerador_ritualico com os parâmetros padrão e registre a saída no plano LIMBO. Em seguida, invoque migrador_grimorio para transferir os artefatos válidos para GRIMORIO e finalize com selador_demoníaco para selar os rituais aprovados. Certifique-se de que cada etapa retorne status ritualístico e log detalhado.
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🛠️ Prompt - Execução de artefatos mágicos via Instrumentos-Mágicos         ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Execute o ritual `gerador_ritualico.dart` com parâmetros padrão e registre a saída no plano LIMBO.  
+Em seguida, invoque `migrador_grimorio.dart` para transferir os artefatos válidos para GRIMORIO.  
+Finalize com `selador_demoníaco.dart` para aplicar selos mágicos nos rituais aprovados.  
+Retorne status ritualístico, logs detalhados e tempo de execução de cada etapa.
+
+# Sugestões
+# - 🔁 Permitir execução paralela dos rituais
+# - 🧪 Validar artefatos antes da migração
+# - 📜 Gerar relatório ritualístico para auditoria arcana
+
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
