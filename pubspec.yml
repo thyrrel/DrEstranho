@@ -1,0 +1,23 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📜 pubspec.yaml - Armazém dos rituais selados e aprovados                  ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: grimorio
+description: Repositório dos rituais aprovados e selados
+version: 1.0.0
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+
+dependencies:
+  yaml: ^3.1.2
+  args: ^2.3.0
+
+# Sugestões
+# - 📚 Indexação por tipo, data e plano de origem
+# - 🔍 Busca ritualística com filtros avançados
+# - 🧾 Geração de changelogs e histórico de selamentos
+# - 🧬 Validação de compatibilidade entre rituais
+
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
