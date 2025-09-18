@@ -36,6 +36,3 @@ void main() {
     print('✅ Artefato promovido: ${file.path}');
   }
 }
-
-// ✍️ byThyrrel  
-// 💡 Formato grimório técnico seguro e elegante
