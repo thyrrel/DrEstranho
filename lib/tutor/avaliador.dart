@@ -1,43 +1,31 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🧠 Avaliador - Validador ritualístico da VDF         ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🧪 avaliador.dart - Avalia rituais e define aprovação ritualística         ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'ritual_index.dart';
 
 class Avaliador {
-  void avaliarTodos() {
-    ritualIndex.forEach((nome, dados) {
-      final testado = dados['testado'] == true;
-      final log = dados['log'] == true;
-      final descricao = dados['descricao']?.isNotEmpty ?? false;
-
-      if (testado && log && descricao) {
-        dados['status'] = 'pronto';
-        print('✅ Ritual "$nome" validado como pronto.');
-      } else {
-        dados['status'] = 'em_validacao';
-        print('🔄 Ritual "$nome" permanece em validação.');
-      }
-    });
-  }
-
-  void avaliarRitual(String nome) {
-    final dados = ritualIndex[nome];
-    if (dados == null) {
-      print('❌ Ritual "$nome" não encontrado.');
+  void avaliar(String nome) {
+    final ritual = ritualIndex[nome];
+    if (ritual == null) {
+      print('⚠️ Ritual não encontrado: $nome');
       return;
     }
 
-    final testado = dados['testado'] == true;
-    final log = dados['log'] == true;
-    final descricao = dados['descricao']?.isNotEmpty ?? false;
+    // 🔍 Lógica de avaliação simples
+    final conteudo = ritual['conteudo'] ?? '';
+    final aprovado = conteudo.contains('invocação') || conteudo.length > 50;
 
-    if (testado && log && descricao) {
-      dados['status'] = 'pronto';
-      print('✅ Ritual "$nome" validado como pronto.');
-    } else {
-      dados['status'] = 'em_validacao';
-      print('🔄 Ritual "$nome" permanece em validação.');
+    ritual['status'] = aprovado ? 'aprovado' : 'reprovado';
+
+    print(aprovado
+        ? '✅ Ritual aprovado: $nome'
+        : '❌ Ritual reprovado: $nome');
+  }
+
+  void avaliarTodos() {
+    for (final nome in ritualIndex.keys) {
+      avaliar(nome);
     }
   }
 }
