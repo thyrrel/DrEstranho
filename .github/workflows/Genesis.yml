@@ -26,34 +26,27 @@ jobs:
             echo "🔧 Criando artefato: $nome ($tipo)"
             echo "📜 Descrição: $descricao"
 
-            # Criar arquivo Dart
             mkdir -p instrumentos_magicos
             echo "void main() => print('Executando $nome: $descricao');" > instrumentos_magicos/$nome.dart
 
-            # Criar workflow de validação
             mkdir -p .github/workflows
-            cat <<EOF > .github/workflows/$nome.yml
-name: 🔥 $nome - Validação em LIMBO
+            echo "name: 🔥 $nome - Validação em LIMBO" > .github/workflows/$nome.yml
+            echo "on:" >> .github/workflows/$nome.yml
+            echo "  push:" >> .github/workflows/$nome.yml
+            echo "    branches:" >> .github/workflows/$nome.yml
+            echo "      - LIMBO" >> .github/workflows/$nome.yml
+            echo "jobs:" >> .github/workflows/$nome.yml
+            echo "  testar-$nome:" >> .github/workflows/$nome.yml
+            echo "    name: 🧪 Testar $nome" >> .github/workflows/$nome.yml
+            echo "    runs-on: ubuntu-latest" >> .github/workflows/$nome.yml
+            echo "    steps:" >> .github/workflows/$nome.yml
+            echo "      - name: Checkout" >> .github/workflows/$nome.yml
+            echo "        uses: actions/checkout@v3" >> .github/workflows/$nome.yml
+            echo "      - name: Instalar Dart" >> .github/workflows/$nome.yml
+            echo "        uses: dart-lang/setup-dart@v1" >> .github/workflows/$nome.yml
+            echo "      - name: Executar $nome.dart" >> .github/workflows/$nome.yml
+            echo "        run: dart instrumentos_magicos/$nome.dart" >> .github/workflows/$nome.yml
 
-on:
-  push:
-    branches:
-      - LIMBO
-
-jobs:
-  testar-$nome:
-    name: 🧪 Testar $nome
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Instalar Dart
-        uses: dart-lang/setup-dart@v1
-      - name: Executar $nome.dart
-        run: dart instrumentos_magicos/$nome.dart
-EOF
-
-            # Mover para LIMBO
             git checkout LIMBO
             git pull origin LIMBO
             git add instrumentos_magicos/$nome.dart .github/workflows/$nome.yml
