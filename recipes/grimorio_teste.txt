@@ -1,1 +1,16 @@
-Valide os rituais recém-migrados no GRIMORIO, gere um changelog ritualístico com data, origem e versão, e indexe os rituais no catálogo arcano. Utilize selador.dart para aplicar selos mágicos e arquivar os artefatos. Verifique compatibilidade entre rituais e sincronize selamentos com planos extraplanares.
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📜 Prompt - Selamento e indexação de rituais no plano GRIMORIO             ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Valide os rituais recém-migrados no GRIMORIO utilizando `selador.dart`.  
+Gere um changelog ritualístico com data, origem e versão usando `gerador_changelog.dart`.  
+Indexe os rituais no catálogo arcano com `indexador_ritual.dart`.  
+Verifique compatibilidade entre rituais e sincronize selamentos com planos extraplanares.
+
+# Sugestões
+# - 📚 Criar histórico de selamentos com versão e origem
+# - 🧩 Verificar conflitos entre rituais selados
+# - 🔁 Exportar selos para planos externos via integração
+
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
