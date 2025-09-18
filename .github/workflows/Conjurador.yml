@@ -13,39 +13,45 @@ jobs:
     name: 🧪 Gerar artefatos
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout do repositório
         uses: actions/checkout@v3
 
-      - name: Setup Dart
+      - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
       - name: Executar Gerador Ritualico
-        run: dart instrumentos_magicos/gerador_ritualico.dart ${{ github.event.inputs.ritual }}
+        run: |
+          echo "🔧 Gerando ritual: ${{ github.event.inputs.ritual }}"
+          dart instrumentos_magicos/gerador_ritualico.dart ${{ github.event.inputs.ritual }}
 
   passo_2_migrar:
     name: 📦 Migrar para Grimório
     needs: passo_1_gerar
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout do repositório
         uses: actions/checkout@v3
 
-      - name: Setup Dart
+      - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
       - name: Executar Migrador Grimório
-        run: dart instrumentos_magicos/migrador_grimorio.dart ${{ github.event.inputs.ritual }}
+        run: |
+          echo "📦 Migrando ritual: ${{ github.event.inputs.ritual }}"
+          dart instrumentos_magicos/migrador_grimorio.dart ${{ github.event.inputs.ritual }}
 
   passo_3_selar:
     name: 🔮 Selar com aprovação
     needs: passo_2_migrar
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout do repositório
         uses: actions/checkout@v3
 
-      - name: Setup Dart
+      - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
       - name: Executar Selador Demoníaco
-        run: dart instrumentos_magicos/selador_demoníaco.dart ${{ github.event.inputs.ritual }}
+        run: |
+          echo "🔮 Selando ritual: ${{ github.event.inputs.ritual }}"
+          dart instrumentos_magicos/selador_demoníaco.dart ${{ github.event.inputs.ritual }}
