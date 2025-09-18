@@ -1,0 +1,33 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🧠 Genesis.yml - Geração de artefatos ritualísticos a partir de receitas   ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: Genesis Ritual
+
+on:
+  push:
+    paths:
+      - recipes/**
+      - bin/tutor.dart
+      - .github/workflows/Genesis.yml
+
+jobs:
+  gerar_artefatos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
+      - name: 🧙 Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: 🧪 Executar tutor demoníaco
+        run: dart run bin/tutor.dart
+
+# Sugestões
+# - 🔁 Rodar em múltiplos ambientes para validação cruzada
+# - 🧩 Gerar artefatos em lote com paralelismo
+# - 📦 Exportar artefatos para GRIMORIO automaticamente
+
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
