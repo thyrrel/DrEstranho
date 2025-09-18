@@ -1,35 +1,24 @@
-name: dr_estranho
-description: >
-  Nano IA gestora de testes e validações da N.O.V.A., operando na DimensãoEspelhada.
-  Simula agentes, monitora fluxos, invoca ferramentas externas e decide quando promover módulos à realidade principal.
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📜 pubspec.yaml - Núcleo conjurador e coordenador de rituais principais    ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-version: 0.1.0
-publish_to: "none"
+name: conjurador
+description: Workflow central que invoca rituais e coordena execuções
+version: 1.0.0
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: '>=2.18.0 <4.0.0'
 
 dependencies:
-  # Core
-  collection: ^1.18.0
-  meta: ^1.10.0
+  yaml: ^3.1.2
+  args: ^2.3.0
+  path: ^1.8.3
 
-  # Comunicação e rede
-  udp: ^3.0.0
-  http: ^1.2.0
+# Sugestões
+# - 🔁 Integrar com múltiplos planos via workflows paralelos
+# - 🧩 Criar abstrações para invocadores e seladores
+# - 🧪 Validar rituais antes de execução com testes sintáticos
+# - 📦 Gerar histórico de execuções para auditoria arcana
 
-  # Serialização
-  json_annotation: ^4.8.1
-
-  # Logs e utilitários
-  logging: ^1.2.0
-  path: ^1.9.0
-
-dev_dependencies:
-  build_runner: ^2.4.6
-  json_serializable: ^6.7.1
-  test: ^1.24.0
-
-# Diretórios padrão
-flutter:
-  uses-material-design: false
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
