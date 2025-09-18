@@ -1,12 +1,12 @@
-name: Conjurador
+name: 🧙‍♂️ Conjurador
 
 on:
   workflow_dispatch:
     inputs:
       ritual:
-        description: 'Nome do ritual a ser conjurado'
+        description: "Nome do ritual a ser conjurado"
         required: true
-        default: 'vigilancia_silenciosa'
+        default: "vigilancia_silenciosa"
 
 jobs:
   passo_1_gerar:
