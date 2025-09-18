@@ -1,7 +1,3 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧠 Genesis.yml - Ritual de geração e avaliação de artefatos mágicos        ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 name: Genesis Ritual
 
 on:
@@ -13,7 +9,7 @@ on:
       - .github/workflows/Genesis.yml
 
 jobs:
-  gerar_artefatos:
+  gerar_e_preparar:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,52 +22,14 @@ jobs:
       - name: 🔮 Executar TutorDemoníaco
         run: dart run bin/tutor.dart
 
-      - name: 🔍 Listar artefatos gerados
-        id: listar
+      - name: 🔍 Verificar artefatos gerados
         run: |
-          echo "ARTS=$(ls artefatos/*.dart | xargs)" >> $GITHUB_ENV
+          ls -l artefatos/ || echo "⚠️ Nenhum artefato encontrado."
 
-  processar_artefatos:
-    needs: gerar_artefatos
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        artefato: [${{ env.ARTS }}]
-
-    steps:
-      - name: 📦 Checkout do grimório
-        uses: actions/checkout@v3
-
-      - name: 📁 Mover artefato para LIMBO
+      - name: 📁 Preparar artefatos para LIMBO
         run: |
           mkdir -p lib/limbo/
-          cp ${{ matrix.artefato }} lib/limbo/
+          cp artefatos/*.dart lib/limbo/ || echo "⚠️ Nenhum artefato para mover."
 
-      - name: 🧪 Testar ritual
-        run: |
-          mkdir -p lib/limbo/testes/
-          cp ${{ matrix.artefato }} lib/limbo/testes/
-          echo "🔬 Testes simulados para ${{ matrix.artefato }}"
-
-      - name: 🧬 Simular ritual
-        run: |
-          mkdir -p lib/limbo/simulacoes/
-          cp ${{ matrix.artefato }} lib/limbo/simulacoes/
-          echo "🌀 Simulações concluídas para ${{ matrix.artefato }}"
-
-      - name: 📜 Validar ritual
-        run: |
-          echo "✅ Ritual validado: ${{ matrix.artefato }}"
-          gh workflow run Validação.yml || (
-            echo "❌ Falha na validação. Movendo para INFERNUS..."
-            mkdir -p lib/infernus/
-            mv ${{ matrix.artefato }} lib/infernus/
-          )
-
-# Sugestões
-# - 🔁 Adicionar logs ritualísticos por artefato
-# - 🧩 Integrar com GRIMORIO após validação
-# - 🛡️ Criar rollback para rituais corrompidos
-
-# ✍️ byThyrrel  
-# 💡 Formato grimório técnico seguro e elegante
+      - name: 📜 Finalizar ritual
+        run: echo "🎯 Artefatos preparados. Aguardando validação em LIMBO."
