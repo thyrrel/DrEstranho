@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧠 Genesis.yml - Geração de artefatos ritualísticos a partir de receitas   ┃
+# ┃ 🧠 Genesis.yml - Geração e preparação ritualística para validação em LIMBO ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -14,6 +14,7 @@ on:
 jobs:
   gerar_artefatos:
     runs-on: ubuntu-latest
+
     steps:
       - name: 📦 Checkout do grimório
         uses: actions/checkout@v3
@@ -21,13 +22,44 @@ jobs:
       - name: 🧙 Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: 🧪 Executar tutor demoníaco
+      - name: 🔮 Executar tutor demoníaco
         run: dart run bin/tutor.dart
 
+      - name: 📁 Mover artefatos para LIMBO
+        run: |
+          mkdir -p lib/limbo/
+          mv artefatos/*.dart lib/limbo/
+
+      - name: 🧪 Preparar testes ritualísticos
+        run: |
+          mkdir -p lib/limbo/testes/
+          cp lib/limbo/*.dart lib/limbo/testes/
+          dart test lib/limbo/testes/
+
+      - name: 🧬 Executar simulações mágicas
+        run: |
+          mkdir -p lib/limbo/simulacoes/
+          cp lib/limbo/*.dart lib/limbo/simulacoes/
+          echo "🔁 Simulações executadas com sucesso."
+
+      - name: 📜 Validar rituais e decidir destino
+        run: |
+          TESTES_OK=true
+          SIMULACOES_OK=true
+
+          if $TESTES_OK && $SIMULACOES_OK; then
+            echo "✅ Rituais aprovados. Invocando validação em LIMBO..."
+            gh workflow run Validação.yml
+          else
+            echo "❌ Rituais falharam. Movendo para INFERNUS..."
+            mkdir -p lib/infernus/
+            mv lib/limbo/*.dart lib/infernus/
+          fi
+
 # Sugestões
-# - 🔁 Rodar em múltiplos ambientes para validação cruzada
-# - 🧩 Gerar artefatos em lote com paralelismo
-# - 📦 Exportar artefatos para GRIMORIO automaticamente
+# - 🔁 Automatizar feedback ritualístico por etapa
+# - 🧩 Integrar com GRIMORIO após validação
+# - 🛡️ Criar rollback para rituais corrompidos
 
 # ✍️ byThyrrel  
 # 💡 Formato grimório técnico seguro e elegante
