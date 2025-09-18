@@ -1,15 +1,15 @@
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 📁 escriba.dart - Registro ritualístico de eventos e diagnósticos         ┃
+// ┃ 🪶 escriba.dart - Registro ritualístico de eventos e diagnósticos         ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 
-class Logista {
-  final File logFile = File('grimorio.log');
+class Escriba {
+  final File grimorio = File('grimorio.log');
 
   void registrar(String mensagem) {
     final timestamp = DateTime.now().toIso8601String();
-    logFile.writeAsStringSync('[$timestamp] $mensagem\n', mode: FileMode.append);
+    grimorio.writeAsStringSync('[$timestamp] $mensagem\n', mode: FileMode.append);
   }
 
   void erro(String ritual, String detalhe) {
