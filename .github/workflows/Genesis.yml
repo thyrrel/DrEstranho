@@ -1,0 +1,46 @@
+name: 🧙‍♂️ Tutor - Criação e Validação de Rituais
+
+on:
+  workflow_dispatch:
+
+jobs:
+  processar-recipe:
+    name: 🔮 Processar Recipe
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Ler recipe
+        run: |
+          for file in Tutor-Demoniaco/recipes/*.txt; do
+            nome=$(basename "$file" .txt)
+            echo "Processando $nome"
+
+            # Criar artefato Dart
+            echo "void main() => print('Executando $nome');" > instrumentos_magicos/$nome.dart
+
+            # Criar workflow de teste
+            cat <<EOF > .github/workflows/$nome.yml
+name: 🔥 $nome - Validação em LIMBO
+on:
+  push:
+    branches:
+      - LIMBO
+jobs:
+  testar-$nome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+      - run: dart instrumentos_magicos/$nome.dart
+EOF
+
+            # Commit para LIMBO
+            git config user.name "Tutor-Demoniaco"
+            git config user.email "ritual@vdf.com"
+            git checkout LIMBO
+            git add instrumentos_magicos/$nome.dart .github/workflows/$nome.yml
+            git commit -m "Ritual $nome criado e enviado para LIMBO"
+            git push origin LIMBO
+          done
