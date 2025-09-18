@@ -1,4 +1,4 @@
-name: 🌌 Genesis - Criador
+name: 🌌 Genesis - Criação e Validação de Rituais
 
 on:
   workflow_dispatch:
@@ -7,6 +7,7 @@ jobs:
   tutor:
     name: 🧙‍♂️ Tutor-Demoniaco - Processar Recipes
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v3
