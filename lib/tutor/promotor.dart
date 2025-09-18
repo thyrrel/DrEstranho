@@ -1,34 +1,41 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔱 Promotor - Executor da vontade do TutorDemoníaco ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🔱 promotor.dart - Promove rituais e gera artefatos mágicos               ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
+import 'dart:io';
 import 'ritual_index.dart';
 
 class Promotor {
   List<String> listarPromoviveis() {
     return ritualIndex.entries
-        .where((e) =>
-            e.value['status'] == 'pronto' &&
-            e.value['testado'] == true &&
-            e.value['log'] == true)
-        .map((e) => e.key)
+        .where((entry) => entry.value['status'] == 'aprovado')
+        .map((entry) => entry.key)
         .toList();
   }
 
   void promover(String nome) {
-    final ritual = ritualIndex[nome];
-    if (ritual == null) {
-      print('❌ Ritual "$nome" não encontrado.');
-      return;
-    }
+    final dados = ritualIndex[nome];
+    if (dados == null) return;
 
-    if (ritual['status'] == 'pronto' &&
-        ritual['testado'] == true &&
-        ritual['log'] == true) {
-      print('✅ Ritual "$nome" promovido ao grimório principal.');
-      // Aqui tu moveria o arquivo para lib/rituais/ no main
-    } else {
-      print('⛔ Ritual "$nome" ainda não cumpre os requisitos.');
-    }
+    final artefato = '''
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ ✨ Artefato gerado: $nome                                                  ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+void main() {
+  print("🔮 Ritual: $nome | Autor: ${dados['autor']}");
+}
+''';
+
+    final dir = Directory('artefatos');
+    if (!dir.existsSync()) dir.createSync(recursive: true);
+
+    final file = File('artefatos/$nome.dart');
+    file.writeAsStringSync(artefato);
+
+    print('✅ Artefato promovido: ${file.path}');
   }
 }
+
+// ✍️ byThyrrel  
+// 💡 Formato grimório técnico seguro e elegante
