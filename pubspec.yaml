@@ -1,0 +1,27 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📜 pubspec.yaml - Tutor arcano para geração de artefatos e receitas mágicas ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: tutor_demonico
+description: Processador de receitas e criador de artefatos mágicos
+version: 1.0.0
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+
+dependencies:
+  yaml: ^3.1.2
+  path: ^1.8.3
+  args: ^2.3.0
+
+executables:
+  tutor: bin/tutor.dart
+
+# Sugestões
+# - 📖 Ler receitas de múltiplos formatos (txt, json, yaml)
+# - 🧪 Validar sintaxe ritualística antes de gerar artefatos
+# - 🧬 Criar templates de rituais com variações parametrizadas
+# - 🔮 Integrar com geradores visuais para feedback em tempo real
+
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
