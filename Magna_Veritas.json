@@ -1,0 +1,27 @@
+{
+  "tomo": "Magna_Veritas",
+  "versao": "1.0",
+  "instrumentos": [
+    {
+      "nome": "gerador_ritualico",
+      "descricao": "Gera testes, simulações e index para rituais no LIMBO",
+      "status": "ativo",
+      "invocavel": true,
+      "branch": "instrumentos-magicos"
+    },
+    {
+      "nome": "migrador_grimorio",
+      "descricao": "Move rituais prontos para o Grimório e atualiza metadados",
+      "status": "ativo",
+      "invocavel": true,
+      "branch": "instrumentos-magicos"
+    },
+    {
+      "nome": "selador_demoníaco",
+      "descricao": "Aplica selos mágicos aos rituais aprovados",
+      "status": "suspenso",
+      "invocavel": false,
+      "branch": "instrumentos-magicos"
+    }
+  ]
+}
