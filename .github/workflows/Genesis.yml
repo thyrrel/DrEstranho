@@ -13,8 +13,8 @@ jobs:
 
       - name: Configurar Git
         run: |
-          git config user.name "Tutor-Demoniaco"
-          git config user.email "ritual@vdf.com"
+          git config --global user.name "Tutor-Demoniaco"
+          git config --global user.email "ritual@vdf.com"
 
       - name: Processar arquivos em recipes/
         run: |
@@ -36,7 +36,7 @@ jobs:
             echo "    branches:" >> .github/workflows/$nome.yml
             echo "      - LIMBO" >> .github/workflows/$nome.yml
             echo "jobs:" >> .github/workflows/$nome.yml
-            echo "  testar-$nome:" >> .github/workflows/$nome.yml
+            echo "  testar_$nome:" >> .github/workflows/$nome.yml
             echo "    name: 🧪 Testar $nome" >> .github/workflows/$nome.yml
             echo "    runs-on: ubuntu-latest" >> .github/workflows/$nome.yml
             echo "    steps:" >> .github/workflows/$nome.yml
@@ -47,6 +47,7 @@ jobs:
             echo "      - name: Executar $nome.dart" >> .github/workflows/$nome.yml
             echo "        run: dart instrumentos_magicos/$nome.dart" >> .github/workflows/$nome.yml
 
+            git fetch origin LIMBO
             git checkout LIMBO
             git pull origin LIMBO
             git add instrumentos_magicos/$nome.dart .github/workflows/$nome.yml
