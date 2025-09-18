@@ -1,0 +1,1 @@
+Valide os rituais recém-migrados no GRIMORIO, gere um changelog ritualístico com data, origem e versão, e indexe os rituais no catálogo arcano. Utilize selador.dart para aplicar selos mágicos e arquivar os artefatos. Verifique compatibilidade entre rituais e sincronize selamentos com planos extraplanares.
