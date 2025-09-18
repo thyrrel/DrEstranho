@@ -1,0 +1,33 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🌫️ Validacao.yml - Testes e validação ritualística antes do selamento     ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: Ritual Validation
+
+on:
+  push:
+    paths:
+      - test/**
+      - bin/**
+      - .github/workflows/Validacao.yml
+
+jobs:
+  testar_rituais:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout do plano LIMBO
+        uses: actions/checkout@v3
+
+      - name: 🧙 Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: 🧪 Rodar testes ritualísticos
+        run: dart test
+
+# Sugestões
+# - 🛡️ Validar estrutura e segurança dos rituais
+# - 📊 Gerar relatórios de falhas e inconsistências
+# - 🔁 Executar testes em múltiplos planos simultaneamente
+
+# ✍️ byThyrrel  
+# 💡 Formato grimório técnico seguro e elegante
