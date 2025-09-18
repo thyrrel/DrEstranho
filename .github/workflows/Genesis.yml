@@ -1,16 +1,38 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🧠 Genesis.yml - Ritual de geração de artefatos por receita individual     ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 name: Genesis Ritual
 
 on:
   push:
     paths:
       - recipes/**
-      - lib/tutor/**
       - bin/tutor.dart
+      - lib/tutor/**
       - .github/workflows/Genesis.yml
 
 jobs:
-  gerar_e_preparar:
+  preparar_matrix:
     runs-on: ubuntu-latest
+    outputs:
+      arquivos: ${{ steps.listar.outputs.arquivos }}
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
+      - name: 📜 Listar arquivos em /recipes/
+        id: listar
+        run: |
+          ARTEFATOS=$(ls recipes/*.txt | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "arquivos=$ARTEFATOS" >> $GITHUB_OUTPUT
+
+  gerar_artefatos:
+    needs: preparar_matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arquivo: ${{ fromJson(needs.preparar_matrix.outputs.arquivos) }}
 
     steps:
       - name: 📦 Checkout do grimório
@@ -19,17 +41,13 @@ jobs:
       - name: 🧙 Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: 🔮 Executar TutorDemoníaco
-        run: dart run bin/tutor.dart
-
-      - name: 🔍 Verificar artefatos gerados
+      - name: 🔮 Gerar artefato para ${{ matrix.arquivo }}
         run: |
-          ls -l artefatos/ || echo "⚠️ Nenhum artefato encontrado."
+          echo "🔮 Processando: ${{ matrix.arquivo }}"
+          dart run bin/tutor.dart ${{ matrix.arquivo }}
 
-      - name: 📁 Preparar artefatos para LIMBO
+      - name: 📁 Mover artefato para LIMBO
         run: |
+          nome=$(basename ${{ matrix.arquivo }} .txt)
           mkdir -p lib/limbo/
-          cp artefatos/*.dart lib/limbo/ || echo "⚠️ Nenhum artefato para mover."
-
-      - name: 📜 Finalizar ritual
-        run: echo "🎯 Artefatos preparados. Aguardando validação em LIMBO."
+          mv artefatos/$nome.dart lib/limbo/
