@@ -1,0 +1,1 @@
+Execute o ritual gerador_ritualico com os parâmetros padrão e registre a saída no plano LIMBO. Em seguida, invoque migrador_grimorio para transferir os artefatos válidos para GRIMORIO e finalize com selador_demoníaco para selar os rituais aprovados. Certifique-se de que cada etapa retorne status ritualístico e log detalhado.
