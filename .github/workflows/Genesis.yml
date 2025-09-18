@@ -1,4 +1,4 @@
-name: 🌌 Genesis - Criação e Validação de Rituais
+name: 🌌 Genesis - Criador
 
 on:
   workflow_dispatch:
