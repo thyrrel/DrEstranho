@@ -53,4 +53,3 @@ jobs:
           mkdir -p lib/limbo/
           if [ -f "artefatos/$nome.dart" ]; then
             mv "artefatos/$nome.dart" lib/limbo/
-          fi
