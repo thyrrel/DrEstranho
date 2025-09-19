@@ -4,37 +4,39 @@
 
 import 'dart:io';
 import 'ritual_index.dart';
+import 'escriba.dart';
 
 class Avaliador {
+  final escriba = Escriba();
+
   void avaliar(String nome) {
     final ritual = ritualIndex[nome];
     if (ritual == null) {
-      print('⚠️ Ritual não encontrado: $nome');
+      escriba.aviso(nome, 'Ritual não encontrado.');
       return;
     }
 
     final conteudo = ritual['conteudo']?.toString() ?? '';
     if (conteudo.trim().isEmpty) {
       ritual['status'] = 'reprovado';
-      print('❌ Ritual vazio: $nome');
+      escriba.erro(nome, 'Conteúdo vazio.');
       return;
     }
 
-    // Gerar artefato temporário
     final tempDir = Directory.systemTemp.createTempSync();
     final file = File('${tempDir.path}/$nome.dart');
     file.writeAsStringSync(conteudo);
 
-    // Validar com dart analyze
     final result = Process.runSync('dart', ['analyze', file.path]);
-
     final aprovado = result.exitCode == 0;
 
     ritual['status'] = aprovado ? 'aprovado' : 'reprovado';
 
-    print(aprovado
-        ? '✅ Ritual aprovado: $nome'
-        : '❌ Ritual com erro de sintaxe: $nome');
+    if (aprovado) {
+      escriba.sucesso(nome, 'Ritual aprovado');
+    } else {
+      escriba.erro(nome, 'Erro de sintaxe');
+    }
 
     tempDir.deleteSync(recursive: true);
   }
