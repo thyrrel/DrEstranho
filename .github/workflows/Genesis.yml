@@ -6,6 +6,8 @@ name: Genesis Ritual
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'recipes/**'
       - 'bin/tutor.dart'
@@ -21,23 +23,21 @@ jobs:
       - name: 📦 Checkout do grimório
         uses: actions/checkout@v3
 
-      - name: 📜 Instalar utilitários necessários
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: 📜 Listar arquivos em /recipes/
         id: listar
         run: |
+          echo ">>> Vasculhando receitas..."
+          ls -R recipes || echo "⚠️ Nenhuma receita encontrada!"
+          
           ARTEFATOS=$(find recipes -type f -name '*.txt' | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          if [ -z "$ARTEFATOS" ] || [ "$ARTEFATOS" = "null" ]; then
-            ARTEFATOS="[]"
-          fi
+          echo "Arquivos detectados: $ARTEFATOS"
           echo "arquivos=$ARTEFATOS" >> $GITHUB_OUTPUT
 
   gerar_artefatos:
     needs: preparar_matrix
     runs-on: ubuntu-latest
+    if: ${{ needs.preparar_matrix.outputs.arquivos != '[]' }}
     strategy:
-      fail-fast: false
       matrix:
         arquivo: ${{ fromJson(needs.preparar_matrix.outputs.arquivos) }}
 
@@ -51,16 +51,11 @@ jobs:
       - name: 📦 Instalar dependências
         run: dart pub get
 
-      - name: 🔮 Gerar artefato
-        run: dart run bin/tutor.dart "${{ matrix.arquivo }}"
+      - name: 🔮 Gerar artefato para ${{ matrix.arquivo }}
+        run: dart run bin/tutor.dart ${{ matrix.arquivo }}
 
       - name: 📁 Mover artefato para LIMBO
         run: |
           nome=$(basename "${{ matrix.arquivo }}" .txt)
           mkdir -p lib/limbo/
-          if [ -f "artefatos/$nome.dart" ]; then
-            mv -f "artefatos/$nome.dart" lib/limbo/
-            echo "✅ Artefato $nome.dart movido para lib/limbo/"
-          else
-            echo "⚠️ Artefato não encontrado: artefatos/$nome.dart"
-          fi
+          mv artefatos/$nome.dart lib/limbo/ || echo "⚠️ Artefato não encontrado"
