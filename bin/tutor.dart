@@ -24,14 +24,12 @@ void main(List<String> args) {
   final nome = p.basenameWithoutExtension(caminho);
   final conteudo = arquivo.readAsStringSync();
 
-  // 🧠 Preenchimento ritualístico do index
   ritualIndex[nome] = {
-    'status': 'aprovado',
+    'status': 'pendente',
     'autor': 'Tiago',
     'conteudo': conteudo,
   };
 
-  // 🔱 Invocação do TutorDemoníaco
-  final tutor = TutorDemoníaco();
+  final tutor = TutorDemoniaco();
   tutor.promoverTodos();
 }
