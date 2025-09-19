@@ -21,7 +21,7 @@ jobs:
       - name: 📦 Checkout do grimório
         uses: actions/checkout@v3
 
-      - name: 📜 Listar arquivos em /recipes/
+      - name: 📜 Listar rituais em /recipes/
         id: listar
         run: |
           ARTEFATOS=$(find recipes -type f -name '*.txt' | jq -R -s -c 'split("\n") | map(select(length > 0))')
@@ -44,7 +44,7 @@ jobs:
       - name: 📦 Instalar dependências
         run: dart pub get
 
-      - name: 🔮 Executar ritual: ${{ matrix.arquivo }}
+      - name: 🔮 Invocar ritual: ${{ matrix.arquivo }}
         run: |
           nome=$(basename "${{ matrix.arquivo }}" .txt)
           echo "🔮 Ritual invocado: $nome"
