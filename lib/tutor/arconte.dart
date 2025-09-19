@@ -1,47 +1,27 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🧭 arconte.dart - Inspeção de repositórios extraplanares                  ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🧭 Arconte.yml - Ritual de inspeção extraplanar e migração de rituais      ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-import 'dart:io';
-import 'package:path/path.dart' as p;
-import 'escriba.dart';
+name: Arconte Ritual
 
-class Arconte {
-  final String origem = 'extraplanar/';
-  final String destino = 'recipes/lidos/';
-  final escriba = Escriba();
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *' # Executa diariamente às 03:00 UTC
 
-  void inspecionar() {
-    final dir = Directory(origem);
-    if (!dir.existsSync()) {
-      escriba.aviso('Arconte', 'Pasta extraplanar não encontrada.');
-      return;
-    }
+jobs:
+  vasculhar_extraplanares:
+    runs-on: ubuntu-latest
 
-    final arquivos = dir
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.txt'));
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
 
-    for (final arquivo in arquivos) {
-      final nome = p.basename(arquivo.path);
-      final destinoPath = '$destino$nome';
+      - name: 🧙 Instalar Dart
+        uses: dart-lang/setup-dart@v1
 
-      final jaLido = File(destinoPath).existsSync();
-      final conteudo = arquivo.readAsStringSync();
+      - name: 📦 Instalar dependências
+        run: dart pub get
 
-      if (jaLido) {
-        escriba.aviso(nome, 'Já existe em recipes/lidos/');
-        continue;
-      }
-
-      if (!conteudo.contains('main()')) {
-        escriba.erro(nome, 'Conteúdo inadequado: ausência de main()');
-        continue;
-      }
-
-      File(destinoPath).writeAsStringSync(conteudo);
-      escriba.sucesso(nome, 'Copiado para recipes/lidos/');
-    }
-  }
-}
+      - name: 🧭 Invocar Arconte
+        run: dart run lib/tutor/arconte.dart
