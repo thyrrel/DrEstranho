@@ -1,72 +1,54 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔮 ritual_invoker_service.dart - Executor de rituais e gerador de artefatos ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🔮 genesis.yml - Ritual de geração de artefatos por receita individual     ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-import 'dart:io';
-import 'package:path/path.dart' as p;
+name: Genesis Ritual
 
-class RitualInvokerService {
-  final String recipesPath;
-  final String outputPath;
+on:
+  push:
+    paths:
+      - 'recipes/**'
+      - 'bin/tutor.dart'
+      - 'lib/tutor/**'
+      - '.github/workflows/genesis.yml'
 
-  RitualInvokerService({
-    required this.recipesPath,
-    required this.outputPath,
-  });
+jobs:
+  preparar_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      arquivos: ${{ steps.listar.outputs.arquivos }}
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
 
-  Future<void> conjureAll() async {
-    final Directory dir = Directory(recipesPath);
+      - name: 📜 Listar arquivos em /recipes/
+        id: listar
+        run: |
+          ARTEFATOS=$(find recipes -type f -name '*.txt' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "arquivos=$ARTEFATOS" >> "$GITHUB_OUTPUT"
 
-    if (!await dir.exists()) {
-      print('⚠️ Pasta de receitas não encontrada: $recipesPath');
-      return;
-    }
+  gerar_artefatos:
+    needs: preparar_matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arquivo: ${{ fromJson(needs.preparar_matrix.outputs.arquivos) }}
 
-    final List<FileSystemEntity> files = dir
-        .listSync(recursive: true)
-        .where((f) => f is File && f.path.endsWith('.txt'))
-        .toList();
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
 
-    if (files.isEmpty) {
-      print('⏳ Nenhuma receita encontrada.');
-      return;
-    }
+      - name: 🧙 Instalar Dart
+        uses: dart-lang/setup-dart@v1
 
-    for (final file in files) {
-      final String name = p.basenameWithoutExtension(file.path);
-      final String content = await File(file.path).readAsString();
+      - name: 📦 Instalar dependências
+        run: dart pub get
 
-      if (content.trim().isEmpty) {
-        print('⚠️ Receita vazia: ${file.path}');
-        continue;
-      }
+      - name: 🔮 Gerar artefato para ${{ matrix.arquivo }}
+        run: dart run bin/tutor.dart "${{ matrix.arquivo }}"
 
-      final String artifact = _transform(content);
-      final String outputFile = p.join(outputPath, '$name.dart');
-
-      await File(outputFile).writeAsString(artifact);
-      print('✅ Artefato gerado: $outputFile');
-    }
-  }
-
-  String _transform(String ritualText) {
-    // Simulação de transformação mágica
-    return '''
-// 🔮 Artefato gerado automaticamente
-void main() {
-  print("Executando ritual: ${ritualText.replaceAll('"', '\\"')}");
-}
-''';
-  }
-}
-
-// Sugestões
-// - 🛡️ Validar sintaxe dos rituais antes de transformar
-// - 🔤 Adicionar suporte a múltiplos formatos de entrada (ex: YAML, JSON)
-// - 📦 Integrar com storage para registrar histórico de execuções
-// - 🧩 Criar sistema de rollback para desfazer artefatos inválidos
-// - 🎨 Expor status visual para UI com animações de conjuração
-
-// ✍️ byThyrrel  
-// 💡 Código formatado com estilo técnico, seguro e elegante  
-// 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
+      - name: 📁 Mover artefato para LIMBO
+        run: |
+          nome=$(basename "${{ matrix.arquivo }}" .txt)
+          mkdir -p lib/limbo/
+          mv "artefatos/$nome.dart" lib/limbo/
