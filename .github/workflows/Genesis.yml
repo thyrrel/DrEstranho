@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧠 Genesis.yml - Ritual de geração de artefatos por receita individual     ┃
+# ┃ 🔮 Genesis.yml - Ritual de geração de artefatos por receita individual     ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -40,6 +40,9 @@ jobs:
 
       - name: 🧙 Instalar Dart
         uses: dart-lang/setup-dart@v1
+
+      - name: 📦 Instalar dependências
+        run: dart pub get
 
       - name: 🔮 Gerar artefato para ${{ matrix.arquivo }}
         run: |
