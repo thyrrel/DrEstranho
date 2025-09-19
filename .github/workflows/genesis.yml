@@ -1,57 +1,55 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yml - Ritual completo: geração + validação extraplanar         ┃
+# ┃ 🔮 genesis.yml - Workflow de build e testes para projeto Flutter           ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-name: Genesis Ritual
+name: Genesis
 
 on:
   push:
-    paths:
-      - 'recipes/**'
-      - 'bin/executor.dart'
-      - 'lib/tutor/**'
-      - '.github/workflows/genesis.yml'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  preparar_matrix:
+  build:
     runs-on: ubuntu-latest
-    outputs:
-      arquivos: ${{ steps.listar.outputs.arquivos }}
-    steps:
-      - name: 📦 Checkout do grimório
-        uses: actions/checkout@v3
-
-      - name: 📜 Listar arquivos em /recipes/
-        id: listar
-        run: |
-          ARTEFATOS=$(find recipes -type f -name '*.txt' | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "arquivos=$ARTEFATOS" >> "$GITHUB_OUTPUT"
-
-  executar_rituais:
-    needs: preparar_matrix
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arquivo: ${{ fromJson(needs.preparar_matrix.outputs.arquivos) }}
 
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: 🧙 Instalar Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0' # ajuste se precisar da versão exata
 
-      - name: 📦 Instalar dependências
-        run: dart pub get
+      - name: Install dependencies
+        run: flutter pub get
 
-      - name: 🔮 Executar ritual completo (tutor + arconte)
-        run: dart run bin/executor.dart "${{ matrix.arquivo }}"
+      - name: Analyze project
+        run: flutter analyze lib/tutor/
 
-      - name: 📁 Mover artefato para LIMBO
-        run: |
-          nome=$(basename "${{ matrix.arquivo }}" .txt)
-          mkdir -p artefatos/
-          mkdir -p lib/limbo/
-          if [ -f "artefatos/$nome.dart" ]; then
-            mv "artefatos/$nome.dart" lib/limbo/
-          fi
+      - name: Run tests
+        run: flutter test lib/tutor/
+
+      - name: Build APK
+        run: flutter build apk --target lib/tutor/main.dart
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+# Sugestões
+# - 🛡️ Adicionar cache de dependências para acelerar builds
+# - 🔤 Incluir validação de versão mínima do Dart/Flutter
+# - 📦 Publicar APK como release automaticamente
+# - 🧩 Criar job separado para testes em múltiplas plataformas
+# - 🎨 Integrar com badge de status para README
+
+# ✍️ byThyrrel  
+# 💡 Workflow formatado com estilo técnico, seguro e elegante  
+# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
