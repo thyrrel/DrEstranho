@@ -13,49 +13,198 @@ on:
       - 'bin/tutor.dart'
       - 'lib/tutor/**'
       - '.github/workflows/genesis.yml'
+  workflow_dispatch: # Permite execução manual
 
 jobs:
   preparar_matrix:
     runs-on: ubuntu-latest
     outputs:
       arquivos: ${{ steps.listar.outputs.arquivos }}
+      tem_arquivos: ${{ steps.listar.outputs.tem_arquivos }}
     steps:
       - name: 📦 Checkout do grimório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 📜 Listar arquivos em /recipes/
         id: listar
         run: |
           echo ">>> Vasculhando receitas..."
+          
+          # Verificar se a pasta exists
+          if [ ! -d "recipes" ]; then
+            echo "⚠️ Pasta recipes/ não encontrada!"
+            echo "arquivos=[]" >> $GITHUB_OUTPUT
+            echo "tem_arquivos=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
           ls -R recipes || echo "⚠️ Nenhuma receita encontrada!"
           
-          ARTEFATOS=$(find recipes -type f -name '*.txt' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          # Buscar arquivos .txt de forma mais segura
+          ARTEFATOS=""
+          if find recipes -type f -name '*.txt' -print0 | grep -qz .; then
+            ARTEFATOS=$(find recipes -type f -name '*.txt' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          else
+            ARTEFATOS="[]"
+          fi
+          
           echo "Arquivos detectados: $ARTEFATOS"
+          
+          # Verificar se há arquivos
+          if [ "$ARTEFATOS" = "[]" ] || [ "$ARTEFATOS" = '[""]' ]; then
+            echo "tem_arquivos=false" >> $GITHUB_OUTPUT
+          else
+            echo "tem_arquivos=true" >> $GITHUB_OUTPUT
+          fi
+          
           echo "arquivos=$ARTEFATOS" >> $GITHUB_OUTPUT
 
   gerar_artefatos:
     needs: preparar_matrix
     runs-on: ubuntu-latest
-    if: ${{ needs.preparar_matrix.outputs.arquivos != '[]' }}
+    if: needs.preparar_matrix.outputs.tem_arquivos == 'true'
     strategy:
       matrix:
         arquivo: ${{ fromJson(needs.preparar_matrix.outputs.arquivos) }}
+      fail-fast: false # Continua mesmo se um arquivo falhar
 
     steps:
       - name: 📦 Checkout do grimório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 💾 Cache das dependências Dart
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: dart-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: |
+            dart-${{ runner.os }}-
 
       - name: 🧙 Instalar Dart
         uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
 
       - name: 📦 Instalar dependências
-        run: dart pub get
+        run: |
+          echo ">>> Instalando dependências..."
+          dart pub get
+          echo ">>> Dependências instaladas com sucesso!"
+
+      - name: 🔍 Validar receita
+        run: |
+          echo ">>> Validando receita: ${{ matrix.arquivo }}"
+          
+          if [ ! -f "${{ matrix.arquivo }}" ]; then
+            echo "❌ Arquivo não encontrado: ${{ matrix.arquivo }}"
+            exit 1
+          fi
+          
+          if [ ! -s "${{ matrix.arquivo }}" ]; then
+            echo "⚠️ Arquivo vazio: ${{ matrix.arquivo }}"
+            exit 1
+          fi
+          
+          echo "✅ Receita válida!"
 
       - name: 🔮 Gerar artefato para ${{ matrix.arquivo }}
-        run: dart run bin/tutor.dart ${{ matrix.arquivo }}
+        run: |
+          echo ">>> Processando receita: ${{ matrix.arquivo }}"
+          
+          # Criar pasta de artefatos se não existir
+          mkdir -p artefatos
+          
+          # Executar o tutor com timeout
+          timeout 300 dart run bin/tutor.dart "${{ matrix.arquivo }}" || {
+            echo "❌ Falha ao gerar artefato para ${{ matrix.arquivo }}"
+            echo ">>> Logs de erro:"
+            ls -la artefatos/ || echo "Pasta artefatos não acessível"
+            exit 1
+          }
+          
+          echo "✅ Artefato gerado com sucesso!"
 
-      - name: 📁 Mover artefato para LIMBO
+      - name: 📁 Organizar artefatos
         run: |
           nome=$(basename "${{ matrix.arquivo }}" .txt)
+          echo ">>> Processando artefato: $nome"
+          
+          # Criar diretórios necessários
           mkdir -p lib/limbo/
-          mv artefatos/$nome.dart lib/limbo/ || echo "⚠️ Artefato não encontrado"
+          mkdir -p logs/
+          
+          # Log do processo
+          echo "$(date): Processando ${{ matrix.arquivo }}" >> logs/genesis.log
+          
+          # Verificar se o artefato foi gerado
+          if [ -f "artefatos/$nome.dart" ]; then
+            cp "artefatos/$nome.dart" "lib/limbo/"
+            echo "✅ Artefato $nome.dart copiado para lib/limbo/"
+            echo "$(date): Sucesso - $nome.dart" >> logs/genesis.log
+          else
+            echo "⚠️ Artefato $nome.dart não encontrado em artefatos/"
+            echo ">>> Listando conteúdo da pasta artefatos:"
+            ls -la artefatos/ || echo "Pasta artefatos não existe"
+            echo "$(date): Falha - $nome.dart não encontrado" >> logs/genesis.log
+            
+            # Procurar por outros arquivos gerados
+            echo ">>> Procurando por outros arquivos gerados:"
+            find artefatos -name "*$nome*" -type f || echo "Nenhum arquivo relacionado encontrado"
+          fi
+
+      - name: 📊 Commit dos artefatos gerados
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "🔮 Genesis: Atualizar artefato $(basename '${{ matrix.arquivo }}' .txt)"
+          file_pattern: "lib/limbo/*.dart logs/genesis.log"
+          commit_options: "--no-verify"
+          skip_dirty_check: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  relatorio_final:
+    needs: [preparar_matrix, gerar_artefatos]
+    runs-on: ubuntu-latest
+    if: always() # Executa mesmo se jobs anteriores falharam
+    steps:
+      - name: 📦 Checkout para relatório
+        uses: actions/checkout@v4
+
+      - name: 📋 Relatório do Ritual
+        run: |
+          echo "🔮 === RELATÓRIO DO GENESIS RITUAL ==="
+          echo "📊 Arquivos para processar: ${{ needs.preparar_matrix.outputs.arquivos }}"
+          echo "📁 Tem arquivos: ${{ needs.preparar_matrix.outputs.tem_arquivos }}"
+          echo "✅ Status preparação: ${{ needs.preparar_matrix.result }}"
+          echo "🏗️ Status geração: ${{ needs.gerar_artefatos.result }}"
+          
+          if [ "${{ needs.gerar_artefatos.result }}" = "success" ]; then
+            echo "🎉 Ritual completado com sucesso!"
+          elif [ "${{ needs.gerar_artefatos.result }}" = "failure" ]; then
+            echo "❌ Ritual falhou durante a geração"
+          elif [ "${{ needs.gerar_artefatos.result }}" = "skipped" ]; then
+            echo "⏭️ Ritual pulado (sem receitas para processar)"
+          else
+            echo "⚠️ Ritual completado com status: ${{ needs.gerar_artefatos.result }}"
+          fi
+          
+          echo ""
+          echo "🕐 Executado em: $(date)"
+          echo "🔧 Trigger: ${{ github.event_name }}"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "👤 Autor: ${{ github.actor }}"
+
+      - name: 📱 Notificar resultado (se necessário)
+        if: failure()
+        run: |
+          echo "📢 === NOTIFICAÇÃO DE FALHA ==="
+          echo "❌ O Genesis Ritual falhou!"
+          echo "🔍 Verifique os logs acima para mais detalhes"
+          echo "📝 Commit que causou a falha: ${{ github.sha }}"
+          echo "👤 Autor do commit: ${{ github.actor }}"
+          # Aqui você pode adicionar integração com Slack, Discord, email, etc.
+          # Exemplo: curl -X POST -H 'Content-type: application/json' --data '{"text":"Genesis Ritual falhou!"}' YOUR_WEBHOOK_URL
