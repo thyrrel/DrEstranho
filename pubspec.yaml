@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 📦 pubspec.yaml - Definição do grimório e dependências                     ┃
+# ┃ 📦 pubspec.yaml - Definição do pacote ritualístico "tutor"                ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: tutor
@@ -10,4 +10,14 @@ environment:
   sdk: '>=2.18.0 <3.0.0'
 
 dependencies:
-  path: any
+  path: ^1.8.3
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.24.0
+
+# 🔮 Notas rituais:
+# - O nome "tutor" permite que os imports funcionem via package:tutor/...
+# - A dependência "path" é usada para manipulação segura de caminhos
+# - "lints" ativa regras de estilo e segurança para conjuração limpa
+# - "test" permite validar artefatos com testes ritualísticos
