@@ -1,27 +1,96 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧭 Arconte.yml - Ritual de inspeção extraplanar e migração de rituais      ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🧭 arconte.dart - Executor extraplanar e validador de plugins              ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-name: Arconte Ritual
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'escriba.dart';
 
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * *' # Executa diariamente às 03:00 UTC
+class Arconte {
+  final escriba = Escriba();
 
-jobs:
-  vasculhar_extraplanares:
-    runs-on: ubuntu-latest
+  final String recipesPath = 'recipes/';
+  final String acervoPath = 'recipes/acervo/';
+  final String infernusPath = 'recipes/infernus/';
+  final String extraplanarPath = 'extraplanar/';
 
-    steps:
-      - name: 📦 Checkout do grimório
-        uses: actions/checkout@v3
+  void executar() {
+    final receitas = _coletarReceitas();
+    if (receitas.isEmpty) {
+      escriba.aviso('Arconte', 'Nenhuma receita encontrada em /recipes/ ou /recipes/acervo/.');
+      return;
+    }
 
-      - name: 🧙 Instalar Dart
-        uses: dart-lang/setup-dart@v1
+    final plugins = _coletarPlugins();
+    if (plugins.isEmpty) {
+      escriba.aviso('Arconte', 'Nenhum repositório extraplanar encontrado.');
+      return;
+    }
 
-      - name: 📦 Instalar dependências
-        run: dart pub get
+    for (final plugin in plugins) {
+      final nome = p.basenameWithoutExtension(plugin.path);
+      final conteudo = plugin.readAsStringSync();
 
-      - name: 🧭 Invocar Arconte
-        run: dart run lib/tutor/arconte.dart
+      if (!_estaFinalizado(conteudo)) {
+        escriba.erro(nome, 'Plugin extraplanar incompleto ou inválido.');
+        _moverPara(infernusPath, plugin);
+        continue;
+      }
+
+      _moverPara(acervoPath, plugin);
+      escriba.sucesso(nome, 'Plugin extraplanar validado e movido para acervo.');
+    }
+  }
+
+  List<File> _coletarReceitas() {
+    final receitasDir = Directory(recipesPath);
+    final acervoDir = Directory(acervoPath);
+
+    final arquivos = <File>[];
+
+    if (receitasDir.existsSync()) {
+      arquivos.addAll(receitasDir
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.txt')));
+    }
+
+    if (acervoDir.existsSync()) {
+      arquivos.addAll(acervoDir
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.txt')));
+    }
+
+    return arquivos;
+  }
+
+  List<File> _coletarPlugins() {
+    final dir = Directory(extraplanarPath);
+    if (!dir.existsSync()) return [];
+
+    return dir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.txt'))
+        .toList();
+  }
+
+  bool _estaFinalizado(String conteudo) {
+    return conteudo.contains('main()') &&
+           conteudo.contains('PluginExtraplanar') &&
+           !conteudo.contains('TODO') &&
+           conteudo.length > 100;
+  }
+
+  void _moverPara(String destino, File arquivo) {
+    final nome = p.basename(arquivo.path);
+    final destinoPath = p.join(destino, nome);
+
+    final dir = Directory(destino);
+    if (!dir.existsSync()) dir.createSync(recursive: true);
+
+    arquivo.copySync(destinoPath);
+    arquivo.deleteSync();
+  }
+}
