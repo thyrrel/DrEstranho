@@ -1,155 +1,72 @@
-name: Genesis Ritual
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🔮 ritual_invoker_service.dart - Executor de rituais e gerador de artefatos ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'recipes/**'
-      - 'bin/tutor.dart'
-      - 'lib/tutor/**'
-      - '.github/workflows/genesis.yml'
-  workflow_dispatch:
+import 'dart:io';
+import 'package:path/path.dart' as p;
 
-jobs:
-  preparar_matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      arquivos: ${{ steps.listar.outputs.arquivos }}
-      tem_arquivos: ${{ steps.listar.outputs.tem_arquivos }}
-    steps:
-      - name: 📦 Checkout do grimório
-        uses: actions/checkout@v4
+class RitualInvokerService {
+  final String recipesPath;
+  final String outputPath;
 
-      - name: 📜 Listar arquivos em recipes
-        id: listar
-        run: |
-          echo ">>> Vasculhando receitas..."
-          
-          if [ ! -d "recipes" ]; then
-            echo "⚠️ Pasta recipes não encontrada"
-            echo "arquivos=[]" >> $GITHUB_OUTPUT
-            echo "tem_arquivos=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          
-          ls -R recipes || echo "⚠️ Nenhuma receita encontrada"
-          
-          ARTEFATOS="[]"
-          if find recipes -type f -name '*.txt' | head -1 | grep -q .; then
-            ARTEFATOS=$(find recipes -type f -name '*.txt' | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          fi
-          
-          echo "Arquivos detectados: $ARTEFATOS"
-          echo "arquivos=$ARTEFATOS" >> $GITHUB_OUTPUT
-          
-          if [ "$ARTEFATOS" = "[]" ] || [ -z "$ARTEFATOS" ]; then
-            echo "tem_arquivos=false" >> $GITHUB_OUTPUT
-          else
-            echo "tem_arquivos=true" >> $GITHUB_OUTPUT
-          fi
+  RitualInvokerService({
+    required this.recipesPath,
+    required this.outputPath,
+  });
 
-  gerar_artefatos:
-    needs: preparar_matrix
-    runs-on: ubuntu-latest
-    if: needs.preparar_matrix.outputs.tem_arquivos == 'true'
-    strategy:
-      matrix:
-        arquivo: ${{ fromJson(needs.preparar_matrix.outputs.arquivos) }}
-      fail-fast: false
+  Future<void> conjureAll() async {
+    final Directory dir = Directory(recipesPath);
 
-    steps:
-      - name: 📦 Checkout do grimório
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+    if (!await dir.exists()) {
+      print('⚠️ Pasta de receitas não encontrada: $recipesPath');
+      return;
+    }
 
-      - name: 🧙 Instalar Dart
-        uses: dart-lang/setup-dart@v1
-        with:
-          sdk: stable
+    final List<FileSystemEntity> files = dir
+        .listSync(recursive: true)
+        .where((f) => f is File && f.path.endsWith('.txt'))
+        .toList();
 
-      - name: 📦 Instalar dependências
-        run: |
-          echo ">>> Instalando dependências..."
-          dart pub get
+    if (files.isEmpty) {
+      print('⏳ Nenhuma receita encontrada.');
+      return;
+    }
 
-      - name: 🔍 Validar receita
-        run: |
-          echo ">>> Validando: ${{ matrix.arquivo }}"
-          
-          if [ ! -f "${{ matrix.arquivo }}" ]; then
-            echo "❌ Arquivo não encontrado: ${{ matrix.arquivo }}"
-            exit 1
-          fi
-          
-          if [ ! -s "${{ matrix.arquivo }}" ]; then
-            echo "⚠️ Arquivo vazio: ${{ matrix.arquivo }}"
-            exit 1
-          fi
-          
-          echo "✅ Receita válida!"
+    for (final file in files) {
+      final String name = p.basenameWithoutExtension(file.path);
+      final String content = await File(file.path).readAsString();
 
-      - name: 🔮 Gerar artefato para ${{ matrix.arquivo }}
-        run: |
-          echo ">>> Processando receita: ${{ matrix.arquivo }}"
-          
-          mkdir -p artefatos
-          mkdir -p lib/limbo
-          
-          timeout 300 dart run bin/tutor.dart "${{ matrix.arquivo }}" || {
-            echo "❌ Falha ao gerar artefato"
-            ls -la artefatos/ || echo "Pasta artefatos vazia"
-            exit 1
-          }
-          
-          echo "✅ Geração concluída!"
+      if (content.trim().isEmpty) {
+        print('⚠️ Receita vazia: ${file.path}');
+        continue;
+      }
 
-      - name: 📁 Mover artefato para LIMBO
-        run: |
-          nome=$(basename "${{ matrix.arquivo }}" .txt)
-          echo ">>> Movendo artefato: $nome"
-          
-          if [ -f "artefatos/$nome.dart" ]; then
-            cp "artefatos/$nome.dart" "lib/limbo/"
-            echo "✅ Artefato $nome.dart copiado para lib/limbo/"
-          else
-            echo "⚠️ Artefato $nome.dart não encontrado"
-            echo ">>> Conteúdo da pasta artefatos:"
-            ls -la artefatos/ || echo "Pasta não existe"
-            
-            echo ">>> Procurando arquivos relacionados:"
-            find . -name "*$nome*" -type f || echo "Nenhum arquivo encontrado"
-          fi
+      final String artifact = _transform(content);
+      final String outputFile = p.join(outputPath, '$name.dart');
 
-      - name: 📊 Commit automático
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "🔮 Genesis: Atualizar artefato $(basename '${{ matrix.arquivo }}' .txt)"
-          file_pattern: "lib/limbo/*.dart"
-          commit_options: "--no-verify"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      await File(outputFile).writeAsString(artifact);
+      print('✅ Artefato gerado: $outputFile');
+    }
+  }
 
-  relatorio_final:
-    needs: [preparar_matrix, gerar_artefatos]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: 📋 Relatório do Ritual
-        run: |
-          echo "🔮 === RELATÓRIO GENESIS RITUAL ==="
-          echo "📊 Receitas: ${{ needs.preparar_matrix.outputs.arquivos }}"
-          echo "✅ Preparação: ${{ needs.preparar_matrix.result }}"
-          echo "🏗️ Geração: ${{ needs.gerar_artefatos.result }}"
-          
-          if [ "${{ needs.gerar_artefatos.result }}" = "success" ]; then
-            echo "🎉 Ritual completado com sucesso!"
-          elif [ "${{ needs.gerar_artefatos.result }}" = "skipped" ]; then
-            echo "⏭️ Ritual pulado - sem receitas"
-          else
-            echo "⚠️ Ritual com problemas: ${{ needs.gerar_artefatos.result }}"
-          fi
-          
-          echo "🕐 $(date)"
-          echo "👤 ${{ github.actor }}"
+  String _transform(String ritualText) {
+    // Simulação de transformação mágica
+    return '''
+// 🔮 Artefato gerado automaticamente
+void main() {
+  print("Executando ritual: ${ritualText.replaceAll('"', '\\"')}");
+}
+''';
+  }
+}
+
+// Sugestões
+// - 🛡️ Validar sintaxe dos rituais antes de transformar
+// - 🔤 Adicionar suporte a múltiplos formatos de entrada (ex: YAML, JSON)
+// - 📦 Integrar com storage para registrar histórico de execuções
+// - 🧩 Criar sistema de rollback para desfazer artefatos inválidos
+// - 🎨 Expor status visual para UI com animações de conjuração
+
+// ✍️ byThyrrel  
+// 💡 Código formatado com estilo técnico, seguro e elegante  
+// 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
