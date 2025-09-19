@@ -1,24 +1,23 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 📜 pubspec.yaml - Núcleo conjurador e coordenador de rituais principais    ┃
+# ┃ 📦 pubspec.yaml - Grimório central do pacote ritualístico "tutor"         ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-name: conjurador
-description: Workflow central que invoca rituais e coordena execuções
+name: tutor
+description: Sistema ritualístico para geração e validação de artefatos mágicos
 version: 1.0.0
 
 environment:
-  sdk: '>=2.18.0 <4.0.0'
+  sdk: '>=2.18.0 <3.0.0'
 
 dependencies:
-  yaml: ^3.1.2
-  args: ^2.3.0
   path: ^1.8.3
 
-# Sugestões
-# - 🔁 Integrar com múltiplos planos via workflows paralelos
-# - 🧩 Criar abstrações para invocadores e seladores
-# - 🧪 Validar rituais antes de execução com testes sintáticos
-# - 📦 Gerar histórico de execuções para auditoria arcana
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.24.0
 
-# ✍️ byThyrrel  
-# 💡 Formato grimório técnico seguro e elegante
+# 🔮 Notas rituais:
+# - O nome "tutor" permite que os imports funcionem via package:tutor/...
+# - A dependência "path" é usada para manipulação segura de caminhos
+# - "lints" ativa regras de estilo e segurança para conjuração limpa
+# - "test" permite validar artefatos com testes ritualísticos
