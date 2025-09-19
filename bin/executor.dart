@@ -27,13 +27,15 @@ void main(List<String> args) {
 
   ritualIndex[nome] = {
     'status': 'pendente',
-    'autor': 'Tiago',
+    'autor': 'Thyrrel',
     'conteudo': conteudo,
   };
 
   final tutor = TutorDemoniaco();
   tutor.promoverTodos();
 
-  final arconte = Arconte();
-  arconte.executar();
+  if (ritualIndex[nome]?['status'] == 'aprovado') {
+    final arconte = Arconte();
+    arconte.executar();
+  }
 }
