@@ -1,3 +1,7 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ ⚙️ genesis.yml - Ritual completo: geração + validação extraplanar         ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 name: Genesis Ritual
 
 on:
@@ -5,7 +9,7 @@ on:
     paths:
       - 'recipes/**'
       - 'bin/genesis.dart'
-      - 'lib/tutor/**'
+      - 'lib/tutor/tutor/**'
       - '.github/workflows/genesis.yml'
 
 jobs:
@@ -40,8 +44,11 @@ jobs:
       - name: 📦 Instalar dependências
         run: dart pub get
 
-      - name: 🔮 Executar ritual completo
-        run: dart run bin/genesis.dart "${{ matrix.arquivo }}"
+      - name: 🔮 Executar ritual: ${{ matrix.arquivo }}
+        run: |
+          nome=$(basename "${{ matrix.arquivo }}" .txt)
+          echo "🔮 Ritual invocado: $nome"
+          dart run bin/genesis.dart "${{ matrix.arquivo }}"
 
       - name: 📁 Mover artefato para LIMBO
         run: |
