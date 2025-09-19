@@ -1,12 +1,14 @@
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔱 promotor.dart - Promove rituais e gera artefatos mágicos               ┃
+// ┃ 📁 promotor.dart - Geração de artefatos a partir de rituais aprovados     ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 import 'ritual_index.dart';
+import 'escriba.dart';
 
 class Promotor {
   final String pastaArtefatos = 'artefatos';
+  final escriba = Escriba();
 
   List<String> listarPromoviveis() {
     return ritualIndex.entries
@@ -18,13 +20,13 @@ class Promotor {
   void promover(String nome) {
     final dados = ritualIndex[nome];
     if (dados == null) {
-      print('⚠️ Ritual não encontrado: $nome');
+      escriba.aviso(nome, 'Ritual não encontrado.');
       return;
     }
 
     final conteudo = dados['conteudo']?.toString() ?? '';
     if (conteudo.trim().isEmpty) {
-      print('⚠️ Ritual vazio: $nome');
+      escriba.erro(nome, 'Conteúdo vazio.');
       return;
     }
 
@@ -42,13 +44,6 @@ $conteudo
     final file = File('$pastaArtefatos/$nome.dart');
     file.writeAsStringSync(artefato);
 
-    print('✅ Artefato promovido: ${file.path}');
-  }
-
-  void promoverTodos() {
-    final lista = listarPromoviveis();
-    for (final nome in lista) {
-      promover(nome);
-    }
+    escriba.sucesso(nome, 'Artefato gerado');
   }
 }
