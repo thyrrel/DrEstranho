@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 genesis.yml - Ritual de geração de artefatos por receita individual     ┃
+# ┃ 🔮 genesis.yml - Ritual completo: geração + validação extraplanar         ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -8,7 +8,7 @@ on:
   push:
     paths:
       - 'recipes/**'
-      - 'bin/tutor.dart'
+      - 'bin/executor.dart'
       - 'lib/tutor/**'
       - '.github/workflows/genesis.yml'
 
@@ -27,7 +27,7 @@ jobs:
           ARTEFATOS=$(find recipes -type f -name '*.txt' | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "arquivos=$ARTEFATOS" >> "$GITHUB_OUTPUT"
 
-  gerar_artefatos:
+  executar_rituais:
     needs: preparar_matrix
     runs-on: ubuntu-latest
     strategy:
@@ -44,11 +44,13 @@ jobs:
       - name: 📦 Instalar dependências
         run: dart pub get
 
-      - name: 🔮 Gerar artefato para ${{ matrix.arquivo }}
-        run: dart run bin/tutor.dart "${{ matrix.arquivo }}"
+      - name: 🔮 Executar ritual completo (tutor + arconte)
+        run: dart run bin/executor.dart "${{ matrix.arquivo }}"
 
       - name: 📁 Mover artefato para LIMBO
         run: |
           nome=$(basename "${{ matrix.arquivo }}" .txt)
           mkdir -p lib/limbo/
-          mv "artefatos/$nome.dart" lib/limbo/
+          if [ -f "artefatos/$nome.dart" ]; then
+            mv "artefatos/$nome.dart" lib/limbo/
+          fi
