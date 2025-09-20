@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 Future<void> main() async {
+  // 1. Vasculha todos os repositórios do usuário
   final repos = await _listRepos();
   for (final repo in repos) {
     final name = repo['name'] as String;
@@ -17,6 +18,7 @@ Future<void> main() async {
     dir.deleteSync(recursive: true);
   }
 
+  // 2. Processa arquivos .txt na pasta recipe
   final recipeDir = Directory('recipe');
   if (!recipeDir.existsSync()) return;
   final txts = recipeDir
@@ -67,7 +69,7 @@ Future<bool> _isValidPlugin(Directory dir) async {
   final pubspec = File('${dir.path}/pubspec.yaml');
   if (!pubspec.existsSync()) return false;
   final content = pubspec.readAsStringSync();
-  return content.contains('executables:') || Directory('${dir.path}/bin').existsSync;
+  return content.contains('executables:') || Directory('${dir.path}/bin').existsSync();
 }
 
 Future<String> _buildPrompt(Directory dir, String repo) async {
