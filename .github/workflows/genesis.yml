@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 genesis_ritual.yaml - Invocação automática de artefatos e validação mística ┃
+# ┃ 🔮 genesis.yml - Invocação automática de artefatos e validação mística     ┃
 # ┃ 📜 Estilo byThyrrel | Fluxo completo | Livre de erros                       ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
@@ -10,119 +10,213 @@ on:
     branches:
       - Tutor-Demoníaco
     paths:
-      - recipe/**
-      - bin/genesis.dart
+      - "recipe/**"
+      - "bin/genesis.dart"
   workflow_dispatch: {}
 
 jobs:
   artefato:
     name: artefato
     runs-on: ubuntu-latest
+    outputs:
+      artifacts_generated: ${{ steps.generate.outputs.artifacts_generated }}
     steps:
       - name: Checkout do grimório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
       - name: Instalar dependências
-        run: |
-          dart pub get
+        run: dart pub get
 
       - name: Invocar rituais e gerar artefatos
+        id: generate
         run: |
+          mkdir -p artefatos
           dart run bin/genesis.dart
+          if ls artefatos/*.dart 1> /dev/null 2>&1; then
+            echo "artifacts_generated=true" >> $GITHUB_OUTPUT
+          else
+            echo "artifacts_generated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload artefatos gerados
+        uses: actions/upload-artifact@v4
+        if: steps.generate.outputs.artifacts_generated == 'true'
+        with:
+          name: generated-artifacts
+          path: artefatos/
 
   movendo_artefato:
     name: movendo_artefato
     needs: artefato
     runs-on: ubuntu-latest
+    if: needs.artefato.outputs.artifacts_generated == 'true'
     steps:
       - name: Checkout do grimório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Download artefatos
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-artifacts
+          path: artefatos/
 
       - name: Mover artefatos para lib/limbo
         run: |
           mkdir -p lib/limbo
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ]; then
-              cp "$f" lib/limbo/
-            fi
-          done
+          if ls artefatos/*.dart 1> /dev/null 2>&1; then
+            cp artefatos/*.dart lib/limbo/
+          fi
+
+      - name: Upload limbo artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: limbo-artifacts
+          path: |
+            lib/limbo/
+            artefatos/
 
   testes:
     name: testes
     needs: movendo_artefato
     runs-on: ubuntu-latest
+    outputs:
+      validation_passed: ${{ steps.validate.outputs.validation_passed }}
     steps:
       - name: Checkout do grimório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: limbo-artifacts
+          path: .
 
       - name: Validar artefatos e simular falhas
+        id: validate
         run: |
           mkdir -p lib/infernus
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ]; then
-              if ! dart analyze "$f"; then
-                nome=$(basename "$f" .dart)
-                cp "$f" lib/infernus/
-                if [ -f "recipe/$nome.txt" ]; then
-                  mv "recipe/$nome.txt" "recipe/${nome}_infernus"
+          validation_passed=true
+          if ls artefatos/*.dart 1> /dev/null 2>&1; then
+            for f in artefatos/*.dart; do
+              if [ -f "$f" ]; then
+                echo "Validando: $f"
+                if ! dart analyze "$f"; then
+                  validation_passed=false
+                  nome=$(basename "$f" .dart)
+                  cp "$f" lib/infernus/
+                  if [ -f "recipe/$nome.txt" ]; then
+                    mv "recipe/$nome.txt" "recipe/${nome}_infernus"
+                  fi
+                  echo "Artefato $nome movido para infernus (falhou na validação)"
                 fi
               fi
-            fi
-          done
+            done
+          fi
+          echo "validation_passed=$validation_passed" >> $GITHUB_OUTPUT
+
+      - name: Upload validation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-results
+          path: |
+            lib/infernus/
+            artefatos/
+            recipe/
 
   valido:
     name: valido
     needs: testes
     runs-on: ubuntu-latest
+    if: needs.testes.outputs.validation_passed == 'true'
     steps:
       - name: Checkout do grimório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Download validation results
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-results
+          path: .
 
       - name: Editar conjurafor.yml no repositório
         run: |
           mkdir -p .github/workflows
-          echo "# Novo job para artefato gerado" >> .github/workflows/conjurafor.yml
+          timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+          echo "# Novo job para artefato gerado em $timestamp" >> .github/workflows/conjurafor.yml
+
+      - name: Upload updated workflows
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-workflows
+          path: |
+            .github/workflows/
+            artefatos/
 
   ok:
     name: ok
-    needs: valido
+    needs: [valido, testes]
     runs-on: ubuntu-latest
+    if: needs.testes.outputs.validation_passed == 'true'
     steps:
       - name: Checkout do grimório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Download updated workflows
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-workflows
+          path: .
 
       - name: Promover artefato para diretórios finais
         run: |
           mkdir -p instrumento ritual extraplanar
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ]; then
-              cp "$f" instrumento/
-              cp "$f" ritual/
-              cp "$f" extraplanar/
-            fi
-          done
+          if ls artefatos/*.dart 1> /dev/null 2>&1; then
+            for f in artefatos/*.dart; do
+              if [ -f "$f" ]; then
+                cp "$f" instrumento/
+                cp "$f" ritual/
+                cp "$f" extraplanar/
+                echo "Artefato $(basename "$f") promovido para todos os diretórios"
+              fi
+            done
+          fi
 
-      - name: Atualizar README com nome(s) do(s) artefato(s)
+      - name: Atualizar README com nomes dos artefatos
         run: |
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ]; then
-              nome=$(basename "$f" .dart)
-              echo "- $nome" >> README.md
-            fi
-          done
+          echo "" >> README.md
+          echo "## 🧱 Artefatos Gerados - $(date '+%Y-%m-%d %H:%M:%S')" >> README.md
+          if ls artefatos/*.dart 1> /dev/null 2>&1; then
+            for f in artefatos/*.dart; do
+              if [ -f "$f" ]; then
+                nome=$(basename "$f" .dart)
+                echo "- ✅ $nome" >> README.md
+              fi
+            done
+          fi
+
+      - name: Commit e push das mudanças
+        run: |
+          git config --global user.name "Genesis Ritual Bot"
+          git config --global user.email "genesis@grimorio.dev"
+          git add .
+          git commit -m "🔮 Genesis Ritual: Artefatos promovidos e validados" || exit 0
+          git push
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 📌 Sugestões futuras                                                       ┃
-# ┃ 🛡️ Verificação de duplicidade antes da promoção                           ┃
-# ┃ 🔄 Mecanismo de rollback para artefatos corrompidos                        ┃
-# ┃ 📦 Publicação como release ou pacote externo                              ┃
-# ┃ 🧩 Aprovação manual para artefatos críticos                               ┃
-# ┃ 🎨 Badges visuais no README para artefatos aprovados                      ┃
+# ┃ 📌 Melhorias implementadas para uso mobile                                 ┃
+# ┃ 🛡️ Verificações robustas de existência de arquivos                        ┃
+# ┃ 🔄 Sistema de artifacts para persistir dados entre jobs                    ┃
+# ┃ 📦 Outputs condicionais para controlar fluxo                              ┃
+# ┃ 🧩 Commit automático das mudanças no final                                 ┃
+# ┃ 🎨 Logs informativos para debugging via mobile                             ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 # ✍️ byThyrrel  
-# 💡 Workflow selado com estilo técnico, seguro e elegante  
-# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
+# 💡 Workflow otimizado para edição mobile e automação completa
+# 🧪 Testado para funcionar sem CLI, apenas via GitHub web interface
