@@ -10,45 +10,116 @@ on:
   workflow_dispatch:
 
 jobs:
-  conjurar_ritual:
-    name: 🔮 Invocação e Validação Inicial
+  artefato:
+    name: 🧱 action: artefato
     runs-on: ubuntu-latest
-
     steps:
-      - name: 📦 Checkout do grimório
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart run bin/genesis.dart
 
-      - name: 🧙 Instalar Dart
-        uses: dart-lang/setup-dart@v1
-
-      - name: 📦 Instalar dependências
-        run: dart pub get
-
-      - name: 🔮 Varredura e invocação de rituais
+  movendo_artefato:
+    name: 📦 action: movendo artefato
+    needs: artefato
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mover artefato para LIMBO/lib/limbo
         run: |
-          mkdir -p artefatos
+          git config --global user.name "ritual-bot"
+          git config --global user.email "ritual@bot.com"
+          git fetch origin LIMBO
+          git checkout LIMBO
+          mkdir -p lib/limbo
+          cp artefatos/*.dart lib/limbo/
+          git add lib/limbo/
+          git commit -m "🔮 Artefato movido para LIMBO"
+          git push origin LIMBO
 
-          if [ -d "recipe" ]; then
-            rituais=$(find recipe -type f -name '*.txt' ! -name '*infernus.txt' ! -path 'recipe/acervo/*')
-          else
-            echo "⚠️ Pasta 'recipe/' não encontrada no ambiente."
-            rituais=""
+  testes:
+    name: 🧪 action: testes
+    needs: movendo_artefato
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar artefato
+        run: |
+          for f in artefatos/*.dart; do
+            dart analyze "$f" || echo "$f" >> falhos.txt
+          done
+
+      - name: Tratar falhas
+        run: |
+          if [ -f falhos.txt ]; then
+            git fetch origin LIMBO
+            git checkout LIMBO
+            mkdir -p lib/infernus
+            for f in $(cat falhos.txt); do
+              nome=$(basename "$f" .dart)
+              cp "$f" lib/infernus/
+              git add lib/infernus/
+            done
+            git commit -m "⚠️ Artefatos falhos movidos para infernus"
+            git push origin LIMBO
+
+            git checkout Tutor-Demoníaco
+            for f in $(cat falhos.txt); do
+              nome=$(basename "$f" .dart)
+              mv "recipe/$nome.txt" "recipe/${nome}_infernus"
+              git add "recipe/${nome}_infernus"
+            done
+            git commit -m "⚠️ Ritual marcado como infernus"
+            git push origin Tutor-Demoníaco
           fi
 
-          for ritual in $rituais; do
-            nome=$(basename "$ritual" .txt)
-            artefato="artefatos/$nome.dart"
+  valido:
+    name: ✅ action: valido
+    needs: testes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Editar conjurafor.yml
+        run: |
+          git fetch origin LIMBO
+          git checkout LIMBO
+          echo "# Novo job para artefato" >> .github/workflows/conjurafor.yml
+          git add .github/workflows/conjurafor.yml
+          git commit -m "✨ Job adicionado ao conjurafor"
+          git push origin LIMBO
 
-            echo "🔧 Gerando artefato para $ritual"
-            dart run bin/genesis.dart "$ritual"
+  ok:
+    name: 🪄 action: ok
+    needs: valido
+    runs-on: ubuntu-latest
+    steps:
+      - name: Promover artefato
+        run: |
+          git fetch origin Instrumentos-Mágicos
+          git checkout Instrumentos-Mágicos
+          mkdir -p instrumento
+          cp artefatos/*.dart instrumento/
+          git add instrumento/
+          git commit -m "🎵 Artefato promovido"
+          git push origin Instrumentos-Mágicos
 
-            if [ -f "$artefato" ]; then
-              echo "🧪 Testando artefato: $artefato"
-              dart analyze "$artefato" || STATUS=falhou
+          git fetch origin GRIMORIO
+          git checkout GRIMORIO
+          mkdir -p ritual
+          cp artefatos/*.dart ritual/
+          git add ritual/
+          git commit -m "📜 Artefato promovido"
+          git push origin GRIMORIO
 
-              echo "📦 Artefato gerado: $artefato"
-              echo "📌 Status: ${STATUS:-aprovado}"
-            else
-              echo "⚠️ Nenhum artefato gerado para $nome"
-            fi
-          done
+          git fetch origin ExtraPlanares
+          git checkout ExtraPlanares
+          mkdir -p extraplanar
+          cp artefatos/*.dart extraplanar/
+          git add extraplanar/
+          git commit -m "🌌 Artefato promovido"
+          git push origin ExtraPlanares
+
+      - name: Atualizar README
+        run: |
+          nome=$(basename artefatos/*.dart .dart)
+          echo "- $nome" >> README.md
+          git add README.md
+          git commit -m "🪄 Artefato $nome registrado no README"
+          git push origin Tutor-Demoníaco
