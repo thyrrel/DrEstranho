@@ -1,128 +1,120 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ 🔮 genesis_ritual.yml - Invocação automática de artefatos e validação mística ┃
-# ┃ 📜 Estilo byThyrrel | Fluxo completo | Livre de erros                       ┃
+# ┃ 📜 Estilo byThyrrel | Fluxo único | Cache | Seguro | Reutilizável             ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
 
 on:
   push:
-    branches:
-      - Tutor-Demoníaco
-    paths:
-      - recipe/**
-      - bin/genesis.dart
-  workflow_dispatch: {}
+    branches: [Tutor-Demoníaco]
+    paths: [recipe/**, bin/genesis.dart]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DART_SDK: 3.5.0
 
 jobs:
-  artefato:
-    name: artefato
+  ritual:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write          # para commitar README
     steps:
-      - name: Checkout do grimório
-        uses: actions/checkout@v3
+      # ---------- 1. Preparação do grimório ----------
+      - name: 📜 Checkout do grimório
+        uses: actions/checkout@v4
 
-      - name: Instalar Dart
+      - name: 🎯 Setup Dart ${{ env.DART_SDK }}
         uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.DART_SDK }}
 
-      - name: Instalar dependências
+      - name: ♻️ Cache de dependências
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: pub-${{ runner.os }}-
+
+      - name: 📦 Instalar dependências
+        run: dart pub get
+
+      # ---------- 2. Invocação ----------
+      - name: 🔮 Invocar rituais e gerar artefatos
+        run: dart run bin/genesis.dart
+
+      # ---------- 3. Validação & Promoção ----------
+      - name: 🛡️ Validar artefatos e promover
+        id: validar
         run: |
-          dart pub get
+          set -euo pipefail
+          mkdir -p lib/limbo lib/infernus instrumento ritual extraplanar
 
-      - name: Invocar rituais e gerar artefatos
-        run: |
-          dart run bin/genesis.dart
+          SUCCESS_COUNT=0
+          echo "## 🔥 Artefatos conjurados" >> $GITHUB_STEP_SUMMARY
 
-  movendo_artefato:
-    name: movendo_artefato
-    needs: artefato
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout do grimório
-        uses: actions/checkout@v3
-
-      - name: Mover artefatos para lib/limbo
-        run: |
-          mkdir -p lib/limbo
           for f in artefatos/*.dart; do
-            if [ -f "$f" ]; then
+            [[ -f "$f" ]] || continue
+            nome=$(basename "$f" .dart)
+
+            if dart analyze --fatal-infos "$f"; then
               cp "$f" lib/limbo/
-            fi
-          done
-
-  testes:
-    name: testes
-    needs: movendo_artefato
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout do grimório
-        uses: actions/checkout@v3
-
-      - name: Validar artefatos e simular falhas
-        run: |
-          mkdir -p lib/infernus
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ]; then
-              if ! dart analyze "$f"; then
-                nome=$(basename "$f" .dart)
-                cp "$f" lib/infernus/
-                if [ -f "recipe/$nome.txt" ]; then
-                  mv "recipe/$nome.txt" "recipe/${nome}_infernus"
-                fi
-              fi
-            fi
-          done
-
-  valido:
-    name: valido
-    needs: testes
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout do grimório
-        uses: actions/checkout@v3
-
-      - name: Editar conjurafor.yml no repositório
-        run: |
-          mkdir -p .github/workflows
-          echo "# Novo job para artefato gerado" >> .github/workflows/conjurafor.yml
-
-  ok:
-    name: ok
-    needs: valido
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout do grimório
-        uses: actions/checkout@v3
-
-      - name: Promover artefato para diretórios finais
-        run: |
-          mkdir -p instrumento ritual extraplanar
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ]; then
-              cp "$f" instrumento/
-              cp "$f" ritual/
-              cp "$f" extraplanar/
-            fi
-          done
-
-      - name: Atualizar README com nome(s) do(s) artefato(s)
-        run: |
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ]; then
-              nome=$(basename "$f" .dart)
+              cp "$f" instrumento/ ritual/ extraplanar/
               echo "- $nome" >> README.md
+              echo "- ✅ $nome" >> $GITHUB_STEP_SUMMARY
+              ((SUCCESS_COUNT++))
+            else
+              cp "$f" lib/infernus/
+              [[ -f recipe/$nome.txt ]] && mv recipe/$nome.txt recipe/${nome}_infernus
+              echo "::error file=$f::Análise mística falhou para $nome"
+              exit 1
             fi
           done
+
+          echo "SUCCESS_COUNT=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
+
+      # ---------- 4. Commit do README atualizado ----------
+      - name: 📄 Commitar README
+        if: steps.validar.outputs.SUCCESS_COUNT != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "chore: registra artefatos conjurados"
+          git push
+
+      # ---------- 5. Arquivo de artefatos aprovados ----------
+      - name: 📤 Upload de artefatos aprovados
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefatos-aprovados
+          path: |
+            instrumento/
+            ritual/
+            extraplanar/
+
+      # ---------- 6. Selo de autenticidade (GPG) ----------
+      - name: 🔐 Assinar artefatos (opcional)
+        if: github.ref == 'refs/heads/Tutor-Demoníaco'
+        continue-on-error: true
+        run: |
+          for f artefatos/*.dart; do
+            gpg --batch --detach-sign --armor "$f"
+          done
+          echo "Assinaturas criadas em artefatos/*.asc"
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 📌 Sugestões futuras                                                       ┃
-# ┃ 🛡️ Verificação de duplicidade antes da promoção                           ┃
-# ┃ 🔄 Mecanismo de rollback para artefatos corrompidos                        ┃
-# ┃ 📦 Publicação como release ou pacote externo                              ┃
-# ┃ 🧩 Aprovação manual para artefatos críticos                               ┃
-# ┃ 🎨 Badges visuais no README para artefatos aprovados                      ┃
+# ┃ 🧪 Roadmap futuro (ativa com flags ou issues)                               ┃
+# ┃  1. Olho de Agamotto: dart test + cobertura + badge codecov                ┃
+# ┃  2. Rosário de rollback: tag genesis/<nome>@v<n> em caso de falha          ┃
+# ┃  3. Círculo de aprovação: ambiente protegido para releases críticas        ┃
+# ┃  4. Espelho dimensional: push para GitHub Packages ou S3                   ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 # ✍️ byThyrrel  
-# 💡 Workflow selado com estilo técnico, seguro e elegante  
-# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
+# 💡 Workflow selado, cacheado, seguro e com estilo
+# 🧪 Ideal para conjuradores exigentes
