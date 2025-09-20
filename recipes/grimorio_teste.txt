@@ -1,16 +1,10 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 📜 Prompt - Selamento e indexação de rituais no plano GRIMORIO             ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 📜 Ritual: rito.txt - Simulação básica para validação de fluxo             ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-Valide os rituais recém-migrados no GRIMORIO utilizando `selador.dart`.  
-Gere um changelog ritualístico com data, origem e versão usando `gerador_changelog.dart`.  
-Indexe os rituais no catálogo arcano com `indexador_ritual.dart`.  
-Verifique compatibilidade entre rituais e sincronize selamentos com planos extraplanares.
-
-# Sugestões
-# - 📚 Criar histórico de selamentos com versão e origem
-# - 🧩 Verificar conflitos entre rituais selados
-# - 🔁 Exportar selos para planos externos via integração
-
-# ✍️ byThyrrel  
-# 💡 Formato grimório técnico seguro e elegante
+Ritual de Teste de Artefato
+Verifica se o sistema consegue interpretar múltiplas linhas
+Cada linha representa uma etapa do ritual
+Este artefato deve apenas imprimir os passos
+Sem lógica adicional, apenas simulação
+Ideal para validar estrutura e fluxo
