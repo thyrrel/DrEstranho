@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yaml - Ritual inicial do Grimório Tutor-Demoníaco              ┃
-# ┃ 🧱 Gera artefatos, valida, move, promove e registra em múltiplas dimensões ┃
+# ┃ 🔮 genesis_ritual.yml - Invocação automática de artefatos e validação mística ┃
+# ┃ 📜 Estilo byThyrrel | Fluxo completo | Livre de erros                       ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -10,105 +10,119 @@ on:
     branches:
       - Tutor-Demoníaco
     paths:
-      - 'recipe/**'
-      - 'bin/genesis.dart'
+      - recipe/**
+      - bin/genesis.dart
   workflow_dispatch: {}
 
 jobs:
   artefato:
-    name: 🧱 action artefato
+    name: artefato
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
 
-      - name: 🧙 Instalar Dart
+      - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: 📦 Instalar dependências
+      - name: Instalar dependências
         run: |
           dart pub get
 
-      - name: 🔮 Invocar rituais e gerar artefatos
+      - name: Invocar rituais e gerar artefatos
         run: |
           dart run bin/genesis.dart
 
   movendo_artefato:
-    name: 📦 action movendo artefato
+    name: movendo_artefato
     needs: artefato
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
-        
-      - name: Mover artefatos para LIMBO/lib/limbo
+
+      - name: Mover artefatos para lib/limbo
         run: |
           mkdir -p lib/limbo
-          if [ -d "artefatos" ] && [ "$(ls -A artefatos/*.dart 2>/dev/null)" ]; then
-            cp artefatos/*.dart lib/limbo/
-          fi
+          for f in artefatos/*.dart; do
+            if [ -f "$f" ]; then
+              cp "$f" lib/limbo/
+            fi
+          done
 
   testes:
-    name: 🧪 action testes
+    name: testes
     needs: movendo_artefato
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
-        
-      - name: 🧙 Instalar Dart
-        uses: dart-lang/setup-dart@v1
-        
+
       - name: Validar artefatos e simular falhas
         run: |
           mkdir -p lib/infernus
-          if [ -d "artefatos" ] && [ "$(ls -A artefatos/*.dart 2>/dev/null)" ]; then
-            for f in artefatos/*.dart; do
-              dart analyze "$f" || (
+          for f in artefatos/*.dart; do
+            if [ -f "$f" ]; then
+              if ! dart analyze "$f"; then
                 nome=$(basename "$f" .dart)
                 cp "$f" lib/infernus/
                 if [ -f "recipe/$nome.txt" ]; then
                   mv "recipe/$nome.txt" "recipe/${nome}_infernus"
                 fi
-              )
-            done
-          fi
+              fi
+            fi
+          done
 
   valido:
-    name: ✅ action valido
+    name: valido
     needs: testes
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
-        
-      - name: Editar conjurafor.yml no LIMBO
+
+      - name: Editar conjurafor.yml no repositório
         run: |
           mkdir -p .github/workflows
           echo "# Novo job para artefato gerado" >> .github/workflows/conjurafor.yml
 
   ok:
-    name: 🪄 action ok
+    name: ok
     needs: valido
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
-        
-      - name: Promover artefato para Instrumentos-Mágicos, GRIMORIO e ExtraPlanares
+
+      - name: Promover artefato para diretórios finais
         run: |
           mkdir -p instrumento ritual extraplanar
-          if [ -d "artefatos" ] && [ "$(ls -A artefatos/*.dart 2>/dev/null)" ]; then
-            cp artefatos/*.dart instrumento/
-            cp artefatos/*.dart ritual/
-            cp artefatos/*.dart extraplanar/
-          fi
+          for f in artefatos/*.dart; do
+            if [ -f "$f" ]; then
+              cp "$f" instrumento/
+              cp "$f" ritual/
+              cp "$f" extraplanar/
+            fi
+          done
 
-      - name: Atualizar README com nome do artefato
+      - name: Atualizar README com nome(s) do(s) artefato(s)
         run: |
-          if [ -d "artefatos" ] && [ "$(ls -A artefatos/*.dart 2>/dev/null)" ]; then
-            for f in artefatos/*.dart; do
+          for f in artefatos/*.dart; do
+            if [ -f "$f" ]; then
               nome=$(basename "$f" .dart)
               echo "- $nome" >> README.md
-            done
-          fi
+            fi
+          done
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📌 Sugestões futuras                                                       ┃
+# ┃ 🛡️ Verificação de duplicidade antes da promoção                           ┃
+# ┃ 🔄 Mecanismo de rollback para artefatos corrompidos                        ┃
+# ┃ 📦 Publicação como release ou pacote externo                              ┃
+# ┃ 🧩 Aprovação manual para artefatos críticos                               ┃
+# ┃ 🎨 Badges visuais no README para artefatos aprovados                      ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# ✍️ byThyrrel  
+# 💡 Workflow selado com estilo técnico, seguro e elegante  
+# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
