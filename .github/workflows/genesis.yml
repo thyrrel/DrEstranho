@@ -1,18 +1,19 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis_ritual.yml - Ritual completo: invocação, validação e promoção  ┃
+# ┃ ⚙️ genesis.yml - Ritual completo: geração, testes, invocação e arquivamento┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
 
 on:
-  workflow_dispatch:  # Permite execução manual via navegador
   push:
+    branches:
+      - Tutor-Demoníaco
     paths:
-      - 'Tutor-Demoníaco/recipes/**'
+      - 'recipe/**'
       - 'bin/genesis.dart'
 
 jobs:
-  invocar_e_validar:
+  conjurar_ritual:
     name: 🔮 Invocação, Validação e Destino
     runs-on: ubuntu-latest
     steps:
@@ -25,9 +26,9 @@ jobs:
       - name: 📦 Instalar dependências
         run: dart pub get
 
-      - name: 🔮 Executar rituais .txt válidos
+      - name: 🔮 Varredura e invocação de rituais
         run: |
-          rituais=$(find Tutor-Demoníaco/recipes -type f -name '*.txt' ! -name '*infernus.txt' ! -name '*acervo.txt')
+          rituais=$(find recipe -type f -name '*.txt' ! -name '*infernus.txt' ! -path 'recipe/acervo/*')
 
           for ritual in $rituais; do
             nome=$(basename "$ritual" .txt)
@@ -40,46 +41,19 @@ jobs:
               echo "🧪 Testando artefato: $artefato"
               dart analyze "$artefato" || STATUS=falhou
 
-              mkdir -p LIMBO/lib/limbo/
-              mkdir -p LIMBO/lib/infernus/
+              mkdir -p lib/limbo/
+              mkdir -p lib/infernus/
 
               if [ "$STATUS" = "falhou" ]; then
-                mv "$artefato" LIMBO/lib/infernus/
-                mv "$ritual" "Tutor-Demoníaco/recipes/${nome}infernus.txt"
-                echo "❌ Ritual reprovado: $nome → infernus"
+                mv "$artefato" lib/infernus/
+                mv "$ritual" "recipe/acervo/${nome}_infernus"
+                echo "❌ Ritual reprovado: artefato → infernus, ritual renomeado"
               else
-                mv "$artefato" LIMBO/lib/limbo/
-                echo "✅ Ritual aprovado: $nome → limbo"
-
-                tipo=$(grep "^tipo:" "$ritual" | cut -d':' -f2 | tr -d '[:space:]')
-                echo "🚀 Invocando destino final: $tipo"
-
-                destino=""
-                case "$tipo" in
-                  instrumento)
-                    destino="Instrumentos-Mágicos"
-                    ;;
-                  grimorio)
-                    destino="GRIMORIO"
-                    ;;
-                  extraplanar)
-                    destino="ExtraPlanares"
-                    ;;
-                  *)
-                    echo "⚠️ Tipo desconhecido: $tipo"
-                    continue
-                    ;;
-                esac
-
-                mkdir -p "$destino/lib/$tipo/"
-                mv "LIMBO/lib/limbo/$nome.dart" "$destino/lib/$tipo/"
-                echo "📦 Artefato movido para $destino/lib/$tipo/"
-
-                mkdir -p Tutor-Demoníaco/recipes/acervo/
-                mv "$ritual" "Tutor-Demoníaco/recipes/acervo/${nome}acervo.txt"
-                echo "📁 Ritual arquivado: ${nome}acervo.txt"
+                mv "$artefato" lib/limbo/
+                echo "✅ Ritual aprovado: artefato → limbo"
+                echo "🚀 Invocando workflow do artefato: $nome"
+                gh workflow run "artefato-${nome}.yml" --ref LIMBO
               fi
             else
               echo "⚠️ Nenhum artefato gerado para $nome"
             fi
-          done
