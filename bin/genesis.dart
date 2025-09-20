@@ -1,96 +1,85 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 genesis.yml - Ritual de geração, validação e promoção de artefatos      ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+import 'dart:convert';
+import 'dart:io';
 
-name: Genesis Ritual
+Future<void> main() async {
+  final repos = await _listRepos();
+  for (final repo in repos) {
+    final name = repo['name'] as String;
+    final cloneUrl = repo['clone_url'] as String;
+    final dir = Directory.systemTemp.createTempSync('repo_$name');
+    print('🔍 Analisando $name');
+    await _clone(cloneUrl, dir.path);
+    if (await _isValidPlugin(dir)) {
+      final prompt = await _buildPrompt(dir, name);
+      File('recipe/$name').writeAsStringSync(prompt);
+      print('✅ Prompt gerado: recipe/$name');
+    }
+    dir.deleteSync(recursive: true);
+  }
 
-on:
-  push:
-    branches: [Tutor-Demoníaco]
-    paths: [recipe/**, bin/genesis.dart, .github/workflows/genesis.yml]
-  workflow_dispatch:
+  final recipeDir = Directory('recipe');
+  if (!recipeDir.existsSync()) return;
+  final txts = recipeDir
+      .listSync(recursive: false)
+      .whereType<File>()
+      .where((f) => f.path.endsWith('.txt'))
+      .toList();
 
-jobs:
-  artefato:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - run: dart run bin/genesis.dart
-      - uses: actions/upload-artifact@v4
-        with:
-          name: artefatos
-          path: artefatos/
+  for (final txt in txts) {
+    final base = _basename(txt.path, '.txt');
+    final artefatosDir = Directory('artefatos')..createSync(recursive: true);
+    final artefato = File('${artefatosDir.path}/$base.dart');
 
-  movendo_artefato:
-    needs: artefato
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with: {name: artefatos, path: artefatos/}
-      - run: |
-          mkdir -p lib/limbo
-          for f in artefatos/*.dart; do [ -f "$f" ] && cp "$f" lib/limbo/; done
+    final buffer = StringBuffer()
+      ..writeln('// Plugin: $base')
+      ..writeln('void main() => print("Plugin $base carregado");');
+    artefato.writeAsStringSync(buffer.toString());
 
-  testes:
-    needs: movendo_artefato
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with: {name: artefatos, path: artefatos/}
-      - run: |
-          mkdir -p lib/infernus
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ] && ! dart analyze --fatal-infos "$f"; then
-              nome=$(basename "$f" .dart)
-              cp "$f" lib/infernus/
-              [ -f "recipe/$nome.txt" ] && mv "recipe/$nome.txt" "recipe/${nome}_infernus"
-            fi
-          done
+    final result = await Process.run('dart', ['analyze', '--fatal-infos', artefato.path]);
+    if (result.exitCode != 0) {
+      txt.renameSync('recipe/${base}_infernus');
+      print('⚠️  Falhou: $base → ${base}_infernus');
+    } else {
+      final acervo = Directory('recipes/acervo')..createSync(recursive: true);
+      txt.renameSync('recipes/acervo/$base');
+      print('✅ OK: $base movido para acervo');
+    }
+  }
+}
 
-  valido:
-    needs: testes
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          mkdir -p .github/workflows
-          echo "# Novo job para artefato gerado" >> .github/workflows/conjurafor.yml
+Future<List<dynamic>> _listRepos() async {
+  final user = Platform.environment['GITHUB_REPOSITORY_OWNER'] ?? 'thyrrel';
+  final client = HttpClient();
+  final req = await client.getUrl(Uri.https('api.github.com', '/users/$user/repos'));
+  final res = await req.close();
+  if (res.statusCode != 200) throw Exception('Erro ao listar repos (HTTP ${res.statusCode})');
+  final raw = await res.transform(utf8.decoder).join();
+  client.close();
+  return jsonDecode(raw) as List;
+}
 
-  ok:
-    needs: valido
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with: {name: artefatos, path: artefatos/}
-      - run: |
-          mkdir -p instrumento ritual extraplanar
-          for f in artefatos/*.dart; do
-            [ -f "$f" ] && cp "$f" instrumento/ && cp "$f" ritual/ && cp "$f" extraplanar/
-          done
-      - run: |
-          for f in artefatos/*.dart; do
-            [ -f "$f" ] && echo "- $(basename "$f" .dart)" >> README.md
-          done
-      - uses: actions/upload-artifact@v4
-        with:
-          name: artefatos-finais
-          path: |
-            instrumento/
-            ritual/
-            extraplanar/
+Future<void> _clone(String url, String path) async {
+  final pr = await Process.run('git', ['clone', '--depth', '1', url, path]);
+  if (pr.exitCode != 0) throw Exception('Clone falhou: ${pr.stderr}');
+}
 
-# Sugestões
-# - 🛡️ Adicionar verificação de duplicidade antes de promover artefatos
-# - 🔤 Criar mecanismo de rollback para artefatos corrompidos
-# - 📦 Publicar artefatos como release ou pacote externo
-# - 🧩 Integrar com sistema de aprovação manual para artefatos críticos
-# - 🎨 Gerar badges visuais para artefatos aprovados no README
+Future<bool> _isValidPlugin(Directory dir) async {
+  final pubspec = File('${dir.path}/pubspec.yaml');
+  if (!pubspec.existsSync()) return false;
+  final content = pubspec.readAsStringSync();
+  return content.contains('executables:') || Directory('${dir.path}/bin').existsSync;
+}
 
-# ✍️ byThyrrel  
-# 💡 Workflow formatado com estilo técnico, seguro e elegante  
-# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
+Future<String> _buildPrompt(Directory dir, String repo) async {
+  final buffer = StringBuffer()..writeln('Plugin: $repo');
+  final binDir = Directory('${dir.path}/bin');
+  if (binDir.existsSync()) {
+    for (final f in binDir.listSync().whereType<File>().where((f) => f.path.endsWith('.dart'))) {
+      buffer.writeln('Código: ${_basename(f.path, '.dart')}');
+    }
+  }
+  return buffer.toString();
+}
+
+String _basename(String path, String ext) =>
+    path.split('/').last.replaceAll(ext, '');
