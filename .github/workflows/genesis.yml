@@ -1,6 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yaml - Ritual inicial do Grimório Tutor-Demoníaco              ┃
-# ┃ 🧱 Gera artefatos, valida, move, promove e registra em múltiplas dimensões ┃
+# ┃ 🔮 genesis_ritual.yml - Invocação automática de artefatos e validação mística ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -8,7 +7,7 @@ name: Genesis Ritual
 on:
   push:
     branches:
-      - Tutor-Demoníaco
+      - 'Tutor-Demoníaco'
     paths:
       - 'recipe/**'
       - 'bin/genesis.dart'
@@ -16,40 +15,40 @@ on:
 
 jobs:
   artefato:
-    name: 🧱 action: artefato
+    name: artefato
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
 
-      - name: 🧙 Instalar Dart
+      - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: 📦 Instalar dependências
+      - name: Instalar dependências
         run: dart pub get
 
-      - name: 🔮 Invocar rituais e gerar artefatos
+      - name: Invocar rituais e gerar artefatos
         run: dart run bin/genesis.dart
 
   movendo_artefato:
-    name: 📦 action: movendo artefato
+    name: movendo_artefato
     needs: artefato
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
 
-      - name: Mover artefatos para LIMBO/lib/limbo
+      - name: Mover artefatos para lib/limbo
         run: |
           mkdir -p lib/limbo
-          cp artefatos/*.dart lib/limbo/ || echo "Nenhum artefato encontrado"
+          cp artefatos/*.dart lib/limbo/ 2>/dev/null || echo "Nenhum artefato encontrado"
 
   testes:
-    name: 🧪 action: testes
+    name: testes
     needs: movendo_artefato
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
 
       - name: Validar artefatos e simular falhas
@@ -67,37 +66,48 @@ jobs:
           done
 
   valido:
-    name: ✅ action: valido
+    name: valido
     needs: testes
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
 
-      - name: Editar conjurafor.yml no LIMBO
+      - name: Editar conjurafor.yml no repositório
         run: |
           mkdir -p .github/workflows
           echo "# Novo job para artefato gerado" >> .github/workflows/conjurafor.yml
 
   ok:
-    name: 🪄 action: ok
+    name: ok
     needs: valido
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do grimório
+      - name: Checkout do grimório
         uses: actions/checkout@v3
 
-      - name: Promover artefato para Instrumentos-Mágicos, GRIMORIO e ExtraPlanares
+      - name: Promover artefato para diretórios finais
         run: |
           mkdir -p instrumento ritual extraplanar
-          cp artefatos/*.dart instrumento/ || echo "Nenhum artefato encontrado"
-          cp artefatos/*.dart ritual/ || echo "Nenhum artefato encontrado"
-          cp artefatos/*.dart extraplanar/ || echo "Nenhum artefato encontrado"
+          cp artefatos/*.dart instrumento/ 2>/dev/null || true
+          cp artefatos/*.dart ritual/ 2>/dev/null || true
+          cp artefatos/*.dart extraplanar/ 2>/dev/null || true
 
-      - name: Atualizar README com nome do artefato
+      - name: Atualizar README com nome(s) do(s) artefato(s)
         run: |
           for f in artefatos/*.dart; do
             [ -f "$f" ] || continue
             nome=$(basename "$f" .dart)
             echo "- $nome" >> README.md
           done
+
+# Sugestões
+# - 🛡️ Adicionar verificação de duplicidade antes de promover artefatos
+# - 🔤 Criar mecanismo de rollback para artefatos corrompidos
+# - 📦 Publicar artefatos como release ou pacote externo
+# - 🧩 Integrar com sistema de aprovação manual para artefatos críticos
+# - 🎨 Gerar badges visuais para artefatos aprovados no README
+
+# ✍️ byThyrrel  
+# 💡 Workflow formatado com estilo técnico, seguro e elegante  
+# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
