@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yml - Ritual completo: geração, testes, invocação e arquivamento┃
+# ┃ ⚙️ genesis.yml - Ritual completo: invocação, validação e destinação final ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -9,11 +9,14 @@ on:
     paths:
       - 'Tutor-Demoníaco/recipes/**'
       - 'bin/genesis.dart'
-      - '.github/workflows/genesis.yml'
 
 jobs:
-  conjurar_ritual:
+  invocacao_inicial:
+    name: 🔮 Invocação Inicial
     runs-on: ubuntu-latest
+    outputs:
+      ritual: ${{ steps.definir.outputs.ritual }}
+      nome: ${{ steps.definir.outputs.nome }}
     steps:
       - name: 📦 Checkout do grimório
         uses: actions/checkout@v3
@@ -24,39 +27,92 @@ jobs:
       - name: 📦 Instalar dependências
         run: dart pub get
 
-      - name: 🔮 Invocar genesis.dart para varredura de repositórios
+      - name: 🔍 Definir ritual e nome
+        id: definir
         run: |
-          echo "🔮 Varredura por apps completos em repositórios thyrrel/"
-          dart run bin/genesis.dart
+          ritual=$(find Tutor-Demoníaco/recipes -type f -name '*.txt' | head -n 1)
+          nome=$(basename "$ritual" .txt)
+          echo "ritual=$ritual" >> $GITHUB_OUTPUT
+          echo "nome=$nome" >> $GITHUB_OUTPUT
 
-      - name: 🧪 Avaliar ritual e destinar artefato
+      - name: 🔧 Gerar artefato
         run: |
-          for ritual in Tutor-Demoníaco/recipes/*.txt; do
-            nome=$(basename "$ritual" .txt)
-            artefato="artefatos/$nome.dart"
+          dart run bin/genesis.dart "${{ steps.definir.outputs.ritual }}"
+          mkdir -p LIMBO/lib/limbo/
+          mv "artefatos/${{ steps.definir.outputs.nome }}.dart" LIMBO/lib/limbo/
 
-            echo "🔧 Gerando artefato para $ritual"
-            dart run bin/genesis.dart "$ritual"
+  validacao:
+    name: 🧪 Testes, Simulações e Validação
+    needs: invocacao_inicial
+    runs-on: ubuntu-latest
+    outputs:
+      tipo: ${{ steps.tipo.outputs.tipo }}
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
 
-            if [ -f "$artefato" ]; then
-              echo "🧪 Testando artefato: $artefato"
-              dart analyze "$artefato" || STATUS=falhou
+      - name: 🧪 Validar artefato
+        id: tipo
+        run: |
+          nome="${{ needs.invocacao_inicial.outputs.nome }}"
+          artefato="LIMBO/lib/limbo/$nome.dart"
+          ritual="${{ needs.invocacao_inicial.outputs.ritual }}"
 
-              mkdir -p LIMBO/lib/limbo/
-              mkdir -p LIMBO/lib/infernus/
+          mkdir -p LIMBO/lib/infernus/
 
-              if [ "$STATUS" = "falhou" ]; then
-                mv "$artefato" LIMBO/lib/infernus/
-                mv "$ritual" "Tutor-Demoníaco/recipes/${nome}infernus.txt"
-                echo "❌ Ritual reprovado: artefato → infernus, ritual renomeado"
-              else
-                mv "$artefato" LIMBO/lib/limbo/
-                echo "✅ Ritual aprovado: artefato → limbo"
+          dart analyze "$artefato" || STATUS=falhou
 
-                echo "🚀 Invocando workflow do artefato: $nome"
-                gh workflow run "artefato-${nome}.yml" --ref LIMBO
-              fi
-            else
-              echo "⚠️ Nenhum artefato gerado para $nome"
-            fi
-          done
+          if [ "$STATUS" = "falhou" ]; then
+            mv "$artefato" LIMBO/lib/infernus/
+            mv "$ritual" "Tutor-Demoníaco/recipes/${nome}infernus"
+            echo "❌ Reprovado"
+            exit 0
+          fi
+
+          tipo=$(grep "^tipo:" "$ritual" | cut -d':' -f2 | tr -d ' ')
+          echo "tipo=$tipo" >> $GITHUB_OUTPUT
+          echo "✅ Aprovado: tipo → $tipo"
+
+  destino_final:
+    name: 🚀 Destino Final
+    needs: [invocacao_inicial, validacao]
+    runs-on: ubuntu-latest
+    if: needs.validacao.outputs.tipo != ''
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
+      - name: 📁 Mover para branch final
+        run: |
+          nome="${{ needs.invocacao_inicial.outputs.nome }}"
+          tipo="${{ needs.validacao.outputs.tipo }}"
+          artefato="LIMBO/lib/limbo/$nome.dart"
+          ritual="Tutor-Demoníaco/recipes/$nome.txt"
+
+          mkdir -p Tutor-Demoníaco/recipes/acervo/
+          mv "$ritual" "Tutor-Demoníaco/recipes/acervo/${nome}acervo"
+
+          case "$tipo" in
+            instrumento)
+              git checkout Instrumentos-Mágicos
+              mkdir -p lib/instrumentos/
+              mv "$artefato" lib/instrumentos/
+              ;;
+            grimorio)
+              git checkout GRIMORIO
+              mkdir -p lib/grimorio/
+              mv "$artefato" lib/grimorio/
+              ;;
+            extraplanar)
+              git checkout ExtraPlanares
+              mkdir -p lib/extraplanares/
+              mv "$artefato" lib/extraplanares/
+              ;;
+            *)
+              echo "⚠️ Tipo desconhecido: $tipo"
+              ;;
+          esac
+
+          git add .
+          git commit -m "Artefato $nome promovido para $tipo"
+          git push
