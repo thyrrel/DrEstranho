@@ -1,10 +1,11 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yml - Ritual completo: invocação, validação e destinação final ┃
+# ┃ ⚙️ genesis_ritual.yml - Ritual completo: invocação, validação e promoção  ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
 
 on:
+  workflow_dispatch:  # Permite execução manual via navegador
   push:
     paths:
       - 'Tutor-Demoníaco/recipes/**'
@@ -53,30 +54,26 @@ jobs:
                 tipo=$(grep "^tipo:" "$ritual" | cut -d':' -f2 | tr -d '[:space:]')
                 echo "🚀 Invocando destino final: $tipo"
 
+                destino=""
                 case "$tipo" in
                   instrumento)
-                    git checkout Instrumentos-Mágicos
-                    mkdir -p lib/instrumentos/
-                    mv "LIMBO/lib/limbo/$nome.dart" lib/instrumentos/
+                    destino="Instrumentos-Mágicos"
                     ;;
                   grimorio)
-                    git checkout GRIMORIO
-                    mkdir -p lib/grimorio/
-                    mv "LIMBO/lib/limbo/$nome.dart" lib/grimorio/
+                    destino="GRIMORIO"
                     ;;
                   extraplanar)
-                    git checkout ExtraPlanares
-                    mkdir -p lib/extraplanares/
-                    mv "LIMBO/lib/limbo/$nome.dart" lib/extraplanares/
+                    destino="ExtraPlanares"
                     ;;
                   *)
                     echo "⚠️ Tipo desconhecido: $tipo"
+                    continue
                     ;;
                 esac
 
-                git add .
-                git commit -m "Artefato $nome promovido para $tipo"
-                git push
+                mkdir -p "$destino/lib/$tipo/"
+                mv "LIMBO/lib/limbo/$nome.dart" "$destino/lib/$tipo/"
+                echo "📦 Artefato movido para $destino/lib/$tipo/"
 
                 mkdir -p Tutor-Demoníaco/recipes/acervo/
                 mv "$ritual" "Tutor-Demoníaco/recipes/acervo/${nome}acervo.txt"
