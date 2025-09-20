@@ -1,60 +1,65 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yml - Ritual completo: geração, testes, invocação e arquivamento┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ ⚙️ bin/genesis.dart - Invocador de rituais e gerador de artefatos mágicos ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-name: Genesis Ritual
+import 'dart:io';
 
-on:
-  push:
-    paths:
-      - 'Tutor-Demoníaco/recipes/**'
-      - 'bin/genesis.dart'
-      - '.github/workflows/genesis.yml'
+void main(List<String> args) {
+  if (args.isEmpty) {
+    print('⚠️ Nenhum ritual fornecido. Use: dart run bin/genesis.dart <caminho>');
+    exit(1);
+  }
 
-jobs:
-  conjurar_ritual:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📦 Checkout do grimório
-        uses: actions/checkout@v3
+  final caminho = args[0];
+  final ritual = File(caminho);
 
-      - name: 🧙 Instalar Dart
-        uses: dart-lang/setup-dart@v1
+  if (!ritual.existsSync()) {
+    print('⚠️ Ritual não encontrado: $caminho');
+    exit(1);
+  }
 
-      - name: 📦 Instalar dependências
-        run: dart pub get
+  final linhas = ritual.readAsLinesSync();
+  String tipo = '';
+  String autor = '';
+  final conteudo = <String>[];
 
-      - name: 🔮 Invocar genesis.dart
-        run: |
-          echo "🔮 Varredura por apps completos em repositórios thyrrel/"
-          dart run bin/genesis.dart
+  for (final linha in linhas) {
+    if (linha.startsWith('tipo:')) {
+      tipo = linha.replaceFirst('tipo:', '').trim();
+    } else if (linha.startsWith('autor:')) {
+      autor = linha.replaceFirst('autor:', '').trim();
+    } else {
+      conteudo.add(linha);
+    }
+  }
 
-      - name: 🧪 Avaliar ritual
-        run: |
-          nome=$(basename "${{ github.event.head_commit.modified[0] }}" .txt)
-          ritual="Tutor-Demoníaco/recipes/$nome.txt"
-          artefato="artefatos/$nome.dart"
+  if (tipo.isEmpty || autor.isEmpty || conteudo.isEmpty) {
+    print('⚠️ Ritual incompleto: tipo, autor ou conteúdo ausente.');
+    exit(1);
+  }
 
-          mkdir -p LIMBO/lib/limbo/
-          mkdir -p LIMBO/lib/infernus/
+  final nome = ritual.uri.pathSegments.last.replaceAll('.txt', '');
+  final artefato = File('artefatos/$nome.dart');
+  artefato.createSync(recursive: true);
 
-          echo "🔧 Gerando artefato para $ritual"
-          dart run bin/genesis.dart "$ritual"
+  final buffer = StringBuffer()
+    ..writeln('// 🧙 Artefato gerado por $autor')
+    ..writeln('// 🔮 Tipo: $tipo')
+    ..writeln('')
+    ..writeln('class ${_formatClassName(nome)} {')
+    ..writeln('  final String tipo = "$tipo";')
+    ..writeln('  final String autor = "$autor";')
+    ..writeln('  final String conteudo = """')
+    ..writeln(conteudo.join('\n'))
+    ..writeln('""";')
+    ..writeln('}');
 
-          if [ -f "$artefato" ]; then
-            echo "🧪 Testando artefato: $artefato"
-            dart analyze "$artefato" || STATUS=falhou
+  artefato.writeAsStringSync(buffer.toString());
+  print('✅ Artefato criado: ${artefato.path}');
+}
 
-            if [ "$STATUS" = "falhou" ]; then
-              mv "$artefato" LIMBO/lib/infernus/
-              mv "$ritual" "Tutor-Demoníaco/recipes/${nome}infernus.txt"
-              echo "❌ Ritual reprovado: artefato → infernus, ritual renomeado"
-            else
-              mv "$artefato" LIMBO/lib/limbo/
-              echo "✅ Ritual aprovado: artefato → limbo"
-              echo "🚀 Invocando workflow do artefato: $nome"
-              gh workflow run "artefato-${nome}.yml" --ref LIMBO
-            fi
-          else
-            echo "⚠️ Nenhum artefato gerado para $nome"
-          fi
+String _formatClassName(String nome) {
+  final limpo = nome.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+  final capitalizado = limpo.split('_').map((p) => p.isEmpty ? '' : '${p[0].toUpperCase()}${p.substring(1)}').join();
+  return capitalizado;
+}
