@@ -16,7 +16,7 @@ on:
 
 jobs:
   artefato:
-    name: 🧱 action: artefato
+    name: 🧱 action artefato
     runs-on: ubuntu-latest
     steps:
       - name: 📦 Checkout do grimório
@@ -34,54 +34,81 @@ jobs:
           dart run bin/genesis.dart
 
   movendo_artefato:
-    name: 📦 action: movendo artefato
+    name: 📦 action movendo artefato
     needs: artefato
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+        
       - name: Mover artefatos para LIMBO/lib/limbo
         run: |
           mkdir -p lib/limbo
-          cp artefatos/*.dart lib/limbo/
+          if [ -d "artefatos" ] && [ "$(ls -A artefatos/*.dart 2>/dev/null)" ]; then
+            cp artefatos/*.dart lib/limbo/
+          fi
 
   testes:
-    name: 🧪 action: testes
+    name: 🧪 action testes
     needs: movendo_artefato
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+        
+      - name: 🧙 Instalar Dart
+        uses: dart-lang/setup-dart@v1
+        
       - name: Validar artefatos e simular falhas
         run: |
           mkdir -p lib/infernus
-          for f in artefatos/*.dart; do
-            dart analyze "$f" || (
-              nome=$(basename "$f" .dart)
-              cp "$f" lib/infernus/
-              mv "recipe/$nome.txt" "recipe/${nome}_infernus"
-            )
-          done
+          if [ -d "artefatos" ] && [ "$(ls -A artefatos/*.dart 2>/dev/null)" ]; then
+            for f in artefatos/*.dart; do
+              dart analyze "$f" || (
+                nome=$(basename "$f" .dart)
+                cp "$f" lib/infernus/
+                if [ -f "recipe/$nome.txt" ]; then
+                  mv "recipe/$nome.txt" "recipe/${nome}_infernus"
+                fi
+              )
+            done
+          fi
 
   valido:
-    name: ✅ action: valido
+    name: ✅ action valido
     needs: testes
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+        
       - name: Editar conjurafor.yml no LIMBO
         run: |
           mkdir -p .github/workflows
           echo "# Novo job para artefato gerado" >> .github/workflows/conjurafor.yml
 
   ok:
-    name: 🪄 action: ok
+    name: 🪄 action ok
     needs: valido
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+        
       - name: Promover artefato para Instrumentos-Mágicos, GRIMORIO e ExtraPlanares
         run: |
           mkdir -p instrumento ritual extraplanar
-          cp artefatos/*.dart instrumento/
-          cp artefatos/*.dart ritual/
-          cp artefatos/*.dart extraplanar/
+          if [ -d "artefatos" ] && [ "$(ls -A artefatos/*.dart 2>/dev/null)" ]; then
+            cp artefatos/*.dart instrumento/
+            cp artefatos/*.dart ritual/
+            cp artefatos/*.dart extraplanar/
+          fi
 
       - name: Atualizar README com nome do artefato
         run: |
-          nome=$(basename artefatos/*.dart .dart)
-          echo "- $nome" >> README.md
+          if [ -d "artefatos" ] && [ "$(ls -A artefatos/*.dart 2>/dev/null)" ]; then
+            for f in artefatos/*.dart; do
+              nome=$(basename "$f" .dart)
+              echo "- $nome" >> README.md
+            done
+          fi
