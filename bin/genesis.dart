@@ -22,14 +22,21 @@ void main(List<String> args) {
   final artefato = File('artefatos/$nome.dart');
   artefato.createSync(recursive: true);
 
-  final conteudo = ritualFile.readAsStringSync();
+  final conteudo = ritualFile.readAsLinesSync();
 
   final buffer = StringBuffer()
-    ..writeln('// 🔮 Artefato gerado a partir do ritual: $nome')
+    ..writeln('// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓')
+    ..writeln('// ┃ 🔮 Artefato: $nome.dart - Gerado a partir do ritual $nome     ┃')
+    ..writeln('// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛')
+    ..writeln('')
     ..writeln('void main() {')
-    ..writeln("  print('🧙 Executando ritual: $nome');")
-    ..writeln("  print('📜 Conteúdo: ${conteudo.replaceAll('\n', ' ')}');")
-    ..writeln('}');
+    ..writeln("  print('🧙 Executando ritual: $nome');");
+
+  for (final linha in conteudo) {
+    buffer.writeln("  print('📜 ${linha.replaceAll("'", "\\'")}');");
+  }
+
+  buffer.writeln('}');
 
   artefato.writeAsStringSync(buffer.toString());
   print('✅ Artefato criado: ${artefato.path}');
