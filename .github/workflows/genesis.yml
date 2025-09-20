@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yml - Ritual completo: varredura, geração, teste e invocação   ┃
+# ┃ ⚙️ genesis.yml - Ritual inicial: geração e validação de artefatos         ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -7,14 +7,15 @@ name: Genesis Ritual
 on:
   push:
     branches:
-      - LIMBO
+      - Tutor-Demoníaco
     paths:
       - 'recipe/**'
       - 'bin/genesis.dart'
+  workflow_dispatch:
 
 jobs:
   conjurar_ritual:
-    name: 🔮 Invocação, Validação e Destino
+    name: 🔮 Invocação e Validação Inicial
     runs-on: ubuntu-latest
     steps:
       - name: 📦 Checkout do grimório
@@ -41,19 +42,11 @@ jobs:
               echo "🧪 Testando artefato: $artefato"
               dart analyze "$artefato" || STATUS=falhou
 
-              mkdir -p lib/limbo/
-              mkdir -p lib/infernus/
+              echo "📦 Artefato gerado: $artefato"
+              echo "📌 Status: ${STATUS:-aprovado}"
 
-              if [ "$STATUS" = "falhou" ]; then
-                mv "$artefato" lib/infernus/
-                mv "$ritual" "recipe/acervo/${nome}_infernus"
-                echo "❌ Ritual reprovado: artefato → infernus, ritual renomeado"
-              else
-                mv "$artefato" lib/limbo/
-                echo "✅ Ritual aprovado: artefato → limbo"
-                echo "🚀 Invocando workflow do artefato: $nome"
-                gh workflow run "artefato-${nome}.yml" --ref LIMBO
-              fi
+              # Ações de destino serão tratadas na branch LIMBO
+              # Este workflow apenas gera e valida
             else
               echo "⚠️ Nenhum artefato gerado para $nome"
             fi
