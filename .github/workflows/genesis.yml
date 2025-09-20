@@ -98,7 +98,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           mkdir -p .github/workflows
-          echo "# Novo job para artefato gerado" >> .github/workflows/artefato.yml
+          echo "# Novo job para artefato gerado" >> .github/workflows/validacao.yml
 
   ok:
     needs: valido
