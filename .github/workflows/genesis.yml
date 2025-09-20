@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yml - Ritual completo: geração, testes, invocação e arquivamento┃
+# ┃ ⚙️ genesis.yml - Ritual completo: varredura, geração, teste e invocação   ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -7,7 +7,7 @@ name: Genesis Ritual
 on:
   push:
     branches:
-      - Tutor-Demoníaco
+      - LIMBO
     paths:
       - 'recipe/**'
       - 'bin/genesis.dart'
