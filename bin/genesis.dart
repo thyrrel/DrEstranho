@@ -1,50 +1,60 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔱 genesis.dart - Invocador único: avaliação, promoção e extraplanar      ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ ⚙️ genesis.yml - Ritual completo: geração, testes, invocação e arquivamento┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-import 'dart:io';
-import 'package:path/path.dart' as p;
-import 'package:tutor/ritual_index.dart';
-import 'package:tutor/avaliador.dart';
-import 'package:tutor/promotor.dart';
-import 'package:tutor/arconte.dart';
-import 'package:tutor/escriba.dart';
+name: Genesis Ritual
 
-void main(List<String> args) {
-  if (args.isEmpty) {
-    stderr.writeln('❌ Nenhum arquivo de ritual informado.');
-    exit(1);
-  }
+on:
+  push:
+    paths:
+      - 'Tutor-Demoníaco/recipes/**'
+      - 'bin/genesis.dart'
+      - '.github/workflows/genesis.yml'
 
-  final caminho = args.first;
-  final arquivo = File(caminho);
+jobs:
+  conjurar_ritual:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
 
-  if (!arquivo.existsSync()) {
-    stderr.writeln('❌ Arquivo não encontrado: $caminho');
-    exit(1);
-  }
+      - name: 🧙 Instalar Dart
+        uses: dart-lang/setup-dart@v1
 
-  final nome = p.basenameWithoutExtension(caminho);
-  final conteudo = arquivo.readAsStringSync();
+      - name: 📦 Instalar dependências
+        run: dart pub get
 
-  ritualIndex[nome] = {
-    'status': 'pendente',
-    'autor': 'Tiago',
-    'conteudo': conteudo,
-  };
+      - name: 🔮 Invocar genesis.dart
+        run: |
+          echo "🔮 Varredura por apps completos em repositórios thyrrel/"
+          dart run bin/genesis.dart
 
-  final escriba = Escriba();
-  final avaliador = Avaliador();
-  final promotor = Promotor();
-  final arconte = Arconte();
+      - name: 🧪 Avaliar ritual
+        run: |
+          nome=$(basename "${{ github.event.head_commit.modified[0] }}" .txt)
+          ritual="Tutor-Demoníaco/recipes/$nome.txt"
+          artefato="artefatos/$nome.dart"
 
-  avaliador.avaliar(nome);
+          mkdir -p LIMBO/lib/limbo/
+          mkdir -p LIMBO/lib/infernus/
 
-  if (ritualIndex[nome]?['status'] == 'aprovado') {
-    promotor.promover(nome);
-    escriba.sucesso(nome, 'Artefato promovido');
-    arconte.executar();
-  } else {
-    escriba.erro(nome, 'Ritual reprovado, não promovido');
-  }
-}
+          echo "🔧 Gerando artefato para $ritual"
+          dart run bin/genesis.dart "$ritual"
+
+          if [ -f "$artefato" ]; then
+            echo "🧪 Testando artefato: $artefato"
+            dart analyze "$artefato" || STATUS=falhou
+
+            if [ "$STATUS" = "falhou" ]; then
+              mv "$artefato" LIMBO/lib/infernus/
+              mv "$ritual" "Tutor-Demoníaco/recipes/${nome}infernus.txt"
+              echo "❌ Ritual reprovado: artefato → infernus, ritual renomeado"
+            else
+              mv "$artefato" LIMBO/lib/limbo/
+              echo "✅ Ritual aprovado: artefato → limbo"
+              echo "🚀 Invocando workflow do artefato: $nome"
+              gh workflow run "artefato-${nome}.yml" --ref LIMBO
+            fi
+          else
+            echo "⚠️ Nenhum artefato gerado para $nome"
+          fi
