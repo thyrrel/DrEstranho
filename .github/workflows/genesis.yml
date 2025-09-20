@@ -1,5 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ ⚙️ genesis.yaml - Ritual completo com ações encadeadas e seladas           ┃
+# ┃ ⚙️ genesis.yaml - Ritual inicial do Grimório Tutor-Demoníaco              ┃
+# ┃ 🧱 Gera artefatos, valida, move, promove e registra em múltiplas dimensões ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -65,7 +66,8 @@ jobs:
     steps:
       - name: Editar conjurafor.yml no LIMBO
         run: |
-          echo "# Novo job para artefato" >> .github/workflows/conjurafor.yml
+          mkdir -p .github/workflows
+          echo "# Novo job para artefato gerado" >> .github/workflows/conjurafor.yml
 
   ok:
     name: 🪄 action: ok
