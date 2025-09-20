@@ -36,25 +36,34 @@ jobs:
     needs: artefato
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
       - name: Mover artefatos para LIMBO/lib/limbo
         run: |
           mkdir -p lib/limbo
-          cp artefatos/*.dart lib/limbo/
+          cp artefatos/*.dart lib/limbo/ || echo "Nenhum artefato encontrado"
 
   testes:
     name: 🧪 action: testes
     needs: movendo_artefato
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
       - name: Validar artefatos e simular falhas
         run: |
           mkdir -p lib/infernus
           for f in artefatos/*.dart; do
-            dart analyze "$f" || (
+            [ -f "$f" ] || continue
+            if ! dart analyze "$f"; then
               nome=$(basename "$f" .dart)
               cp "$f" lib/infernus/
-              mv "recipe/$nome.txt" "recipe/${nome}_infernus"
-            )
+              if [ -f "recipe/$nome.txt" ]; then
+                mv "recipe/$nome.txt" "recipe/${nome}_infernus"
+              fi
+            fi
           done
 
   valido:
@@ -62,6 +71,9 @@ jobs:
     needs: testes
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
       - name: Editar conjurafor.yml no LIMBO
         run: |
           mkdir -p .github/workflows
@@ -72,14 +84,20 @@ jobs:
     needs: valido
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
       - name: Promover artefato para Instrumentos-Mágicos, GRIMORIO e ExtraPlanares
         run: |
           mkdir -p instrumento ritual extraplanar
-          cp artefatos/*.dart instrumento/
-          cp artefatos/*.dart ritual/
-          cp artefatos/*.dart extraplanar/
+          cp artefatos/*.dart instrumento/ || echo "Nenhum artefato encontrado"
+          cp artefatos/*.dart ritual/ || echo "Nenhum artefato encontrado"
+          cp artefatos/*.dart extraplanar/ || echo "Nenhum artefato encontrado"
 
       - name: Atualizar README com nome do artefato
         run: |
-          nome=$(basename artefatos/*.dart .dart)
-          echo "- $nome" >> README.md
+          for f in artefatos/*.dart; do
+            [ -f "$f" ] || continue
+            nome=$(basename "$f" .dart)
+            echo "- $nome" >> README.md
+          done
