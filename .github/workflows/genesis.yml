@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ 🔮 genesis.yml - Ritual de geração, validação e promoção de artefatos      ┃
-# ┃ 📜 Estilo byThyrrel | Fluxo completo | Livre de erros                      ┃
+# ┃ 📜 Estilo byThyrrel | Fluxo completo | Push autorizado via PERSONAL_TOKEN ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Genesis Ritual
@@ -65,10 +65,12 @@ jobs:
           done
 
       - name: Commitar falhos na branch LIMBO
+        env:
+          TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           git config --global user.name "ritual-bot"
           git config --global user.email "ritual@bot.com"
-          git remote set-url origin https://x-access-token:${{ secrets.PERSONAL_TOKEN }}@github.com/thyrrel/DrEstranho.git
+          git remote set-url origin https://x-access-token:${TOKEN}@github.com/thyrrel/DrEstranho.git
           git add lib/infernus/
           git commit -m "⚠️ Artefatos falhos movidos para infernus"
           git push origin LIMBO
@@ -79,6 +81,8 @@ jobs:
           ref: Tutor-Demoníaco
 
       - name: Renomear rituais falhos em recipe/
+        env:
+          TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           for f in artefatos/*.dart; do
             nome=$(basename "$f" .dart)
@@ -88,7 +92,7 @@ jobs:
           done
           git config --global user.name "ritual-bot"
           git config --global user.email "ritual@bot.com"
-          git remote set-url origin https://x-access-token:${{ secrets.PERSONAL_TOKEN }}@github.com/thyrrel/DrEstranho.git
+          git remote set-url origin https://x-access-token:${TOKEN}@github.com/thyrrel/DrEstranho.git
           git add recipe/
           git commit -m "⚠️ Rituais falhos marcados como infernus"
           git push origin Tutor-Demoníaco
