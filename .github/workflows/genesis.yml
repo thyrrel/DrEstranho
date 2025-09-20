@@ -24,31 +24,5 @@ jobs:
       - name: 📦 Instalar dependências
         run: dart pub get
 
-      - name: 🔮 Varredura e invocação de rituais
-        run: |
-          mkdir -p artefatos
-
-          if [ -d "recipe" ]; then
-            rituais=$(find recipe -type f -name '*.txt' ! -name '*infernus.txt' ! -path 'recipe/acervo/*')
-          else
-            echo "⚠️ Pasta 'recipe/' não encontrada no ambiente."
-            rituais=""
-          fi
-
-          for ritual in $rituais; do
-            nome=$(basename "$ritual" .txt)
-            artefato="artefatos/$nome.dart"
-
-            echo "🔧 Gerando artefato para $ritual"
-            dart run bin/genesis.dart "$ritual"
-
-            if [ -f "$artefato" ]; then
-              echo "🧪 Testando artefato: $artefato"
-              dart analyze "$artefato" || STATUS=falhou
-
-              echo "📦 Artefato gerado: $artefato"
-              echo "📌 Status: ${STATUS:-aprovado}"
-            else
-              echo "⚠️ Nenhum artefato gerado para $nome"
-            fi
-          done
+      - name: 🔮 Invocar todos os rituais
+        run: dart run bin/genesis.dart
