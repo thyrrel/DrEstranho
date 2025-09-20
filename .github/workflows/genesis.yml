@@ -1,0 +1,70 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🔮 genesis.yml - Ritual de geração, validação e promoção de artefatos      ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: Genesis Ritual
+
+on:
+  push:
+    branches: [Tutor-Demoníaco]
+    paths: [recipe/**, bin/genesis.dart, .github/workflows/genesis.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  artefato:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart run bin/genesis.dart
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artefatos
+          path: artefatos/
+
+  movendo_artefato:
+    needs: artefato
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: artefatos
+          path: artefatos/
+      - run: |
+          mkdir -p lib/limbo
+          for f in artefatos/*.dart; do [ -f "$f" ] && cp "$f" lib/limbo/; done
+
+  testes:
+    needs: movendo_artefato
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: artefatos
+          path: artefatos/
+      - run: |
+          mkdir -p lib/infernus
+          for f in artefatos/*.dart; do
+            if [ -f "$f" ] && ! dart analyze --fatal-infos "$f"; then
+              nome=$(basename "$f" .dart)
+              cp "$f" lib/infernus/
+              [ -f "recipe/$nome.txt" ] && mv "recipe/$nome.txt" "recipe/${nome}_infernus"
+            fi
+          done
+
+# Sugestões
+# - 🛡️ Adicionar job `valido` para registrar artefatos aprovados
+# - 🔤 Criar job `ok` para promover artefatos para diretórios finais
+# - 📦 Publicar artefatos como release ou pacote externo
+# - 🧩 Integrar com sistema de aprovação manual para artefatos críticos
+# - 🎨 Gerar badges visuais para artefatos aprovados no README
+
+# ✍️ byThyrrel  
+# 💡 Workflow formatado com estilo técnico, seguro e elegante  
+# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
