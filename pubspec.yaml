@@ -7,13 +7,13 @@ description: Sistema ritualístico para geração e validação de artefatos má
 version: 1.0.0
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'  # Compatível com Dart 3, usado pelo GitHub Actions
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  path: ^1.8.3           # Manipulação de caminhos ritualísticos
-  yaml: ^3.1.1           # Leitura de rituais em formato estruturado (opcional)
-  args: ^2.4.2           # Argumentos de invocação (opcional)
+  path: ^1.8.3
+  yaml: ^3.1.1
+  args: ^2.4.2
 
 dev_dependencies:
-  lints: ^2.0.0          # Padrões de estilo byThyrrel
-  test: ^1.24.0          # Testes de invocação e validação
+  lints: ^2.0.0
+  test: ^1.24.0
