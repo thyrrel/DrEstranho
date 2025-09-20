@@ -26,12 +26,10 @@ jobs:
         uses: dart-lang/setup-dart@v1
 
       - name: 📦 Instalar dependências
-        run: |
-          dart pub get
+        run: dart pub get
 
       - name: 🔮 Invocar rituais e gerar artefatos
-        run: |
-          dart run bin/genesis.dart
+        run: dart run bin/genesis.dart
 
   movendo_artefato:
     name: 📦 action: movendo artefato
