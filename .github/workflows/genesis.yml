@@ -66,8 +66,9 @@ jobs:
 
       - name: Commitar falhos na branch LIMBO
         run: |
-          git config user.name "ritual-bot"
-          git config user.email "ritual@bot.com"
+          git config --global user.name "ritual-bot"
+          git config --global user.email "ritual@bot.com"
+          git remote set-url origin https://x-access-token:${{ secrets.PERSONAL_TOKEN }}@github.com/thyrrel/DrEstranho.git
           git add lib/infernus/
           git commit -m "⚠️ Artefatos falhos movidos para infernus"
           git push origin LIMBO
@@ -85,8 +86,9 @@ jobs:
               mv "recipe/$nome.txt" "recipe/${nome}_infernus"
             fi
           done
-          git config user.name "ritual-bot"
-          git config user.email "ritual@bot.com"
+          git config --global user.name "ritual-bot"
+          git config --global user.email "ritual@bot.com"
+          git remote set-url origin https://x-access-token:${{ secrets.PERSONAL_TOKEN }}@github.com/thyrrel/DrEstranho.git
           git add recipe/
           git commit -m "⚠️ Rituais falhos marcados como infernus"
           git push origin Tutor-Demoníaco
@@ -98,7 +100,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           mkdir -p .github/workflows
-          echo "# Novo job para artefato gerado" >> .github/workflows/validacao.yml
+          echo "# Novo job para artefato gerado" >> .github/workflows/conjurafor.yml
 
   ok:
     needs: valido
@@ -125,6 +127,15 @@ jobs:
             instrumento/
             ritual/
             extraplanar/
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📌 Sugestões futuras                                                       ┃
+# ┃ 🛡️ Verificação de duplicidade antes da promoção                           ┃
+# ┃ 🔄 Mecanismo de rollback para artefatos corrompidos                        ┃
+# ┃ 📦 Publicação como release ou pacote externo                              ┃
+# ┃ 🧩 Aprovação manual para artefatos críticos                               ┃
+# ┃ 🎨 Badges visuais no README para artefatos aprovados                      ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 # ✍️ byThyrrel  
 # 💡 Workflow selado com estilo técnico, seguro e elegante  
