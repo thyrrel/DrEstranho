@@ -17,6 +17,7 @@ jobs:
   conjurar_ritual:
     name: 🔮 Invocação e Validação Inicial
     runs-on: ubuntu-latest
+
     steps:
       - name: 📦 Checkout do grimório
         uses: actions/checkout@v3
@@ -44,9 +45,6 @@ jobs:
 
               echo "📦 Artefato gerado: $artefato"
               echo "📌 Status: ${STATUS:-aprovado}"
-
-              # Ações de destino serão tratadas na branch LIMBO
-              # Este workflow apenas gera e valida
             else
               echo "⚠️ Nenhum artefato gerado para $nome"
             fi
