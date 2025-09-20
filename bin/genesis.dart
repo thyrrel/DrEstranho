@@ -1,110 +1,134 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ ⚙️ bin/genesis.dart - Vasculhador de repositórios e gerador de artefatos  ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🔮 genesis.yml - Ritual de geração, validação e promoção de artefatos      ┃
+# ┃ 📜 byThyrrel | Upload→Download sincronizados | Retention curto pra testes  ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+name: Genesis Ritual
 
-import 'dart:convert';
-import 'dart:io';
+on:
+  push:
+    branches: [Tutor-Demoníaco]
+    paths: [recipe/**, bin/genesis.dart, .github/workflows/genesis.yml]
+  workflow_dispatch:
 
-Future<void> main() async {
-  // 1. Vasculha TODOS os repositórios do usuário
-  final repos = await _listRepos();
-  for (final repo in repos) {
-    final name = repo['name'] as String;
-    final cloneUrl = repo['clone_url'] as String;
-    final dir = Directory.systemTemp.createTempSync('repo_$name');
-    print('🔍 Analisando $name');
-    await _clone(cloneUrl, dir.path);
-    if (await _isValidPlugin(dir)) {
-      final prompt = await _buildPrompt(dir, name);
-      File('recipe/$name').writeAsStringSync(prompt);
-      print('✅ Prompt real gerado: recipe/$name');
-    }
-    dir.deleteSync(recursive: true);
-  }
+permissions:
+  contents: write
 
-  // 2. Processa apenas arquivos .txt já existentes na recipe (branch Tutor-Demoníaco)
-  final recipeDir = Directory('recipe');
-  if (!recipeDir.existsSync()) return;
-  final txts = recipeDir
-      .listSync(recursive: false)
-      .whereType<File>()
-      .where((f) => f.path.endsWith('.txt'))
-      .toList();
+jobs:
+  artefato:
+    name: criar artefato
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do grimório
+        uses: actions/checkout@v4
 
-  for (final txt in txts) {
-    final base = _basename(txt.path, '.txt');
-    final artefatosDir = Directory('artefatos')..createSync(recursive: true);
-    final artefato = File('${artefatosDir.path}/$base.dart');
+      - name: Instalar Dart
+        uses: dart-lang/setup-dart@v1
 
-    // Gera artefato real baseado no conteúdo do .txt
-    final conteudo = txt.readAsStringSync();
-    final buffer = StringBuffer()
-      ..writeln('// Plugin: $base')
-      ..writeln('// Conteúdo original do ritual:')
-      ..writeln(conteudo.splitMapJoin('\n', onNonMatch: (s) => '// $s'))
-      ..writeln('')
-      ..writeln('void main() {')
-      ..writeln('  print("Plugin $base inicializado");')
-      ..writeln('}');
-    artefato.writeAsStringSync(buffer.toString());
+      - name: Invocar rituais
+        run: dart pub get && dart run bin/genesis.dart
 
-    // Valida
-    final result = await Process.run('dart', ['analyze', '--fatal-infos', artefato.path]);
-    if (result.exitCode != 0) {
-      txt.renameSync('recipe/${base}_infernus');
-      print('⚠️  Falhou: $base → ${base}_infernus');
-    } else {
-      final acervo = Directory('recipes/acervo')..createSync(recursive: true);
-      txt.renameSync('recipes/acervo/$base');
-      print('✅ OK: $base movido para recipes/acervo/$base');
-    }
-  }
-}
+      - name: Upload artefatos (ZIP interno)
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefatos-v4
+          path: artefatos/*.dart
+          retention-days: 1          # <-- evita expiração durante testes
+          if-no-files-found: error   # <-- garante que algo foi gerado
 
-Future<List<dynamic>> _listRepos() async {
-  final user = Platform.environment['GITHUB_REPOSITORY_OWNER'] ?? 'thyrrel';
-  final client = HttpClient();
-  final req = await client.getUrl(Uri.https('api.github.com', '/users/$user/repos'));
-  final res = await req.close();
-  if (res.statusCode != 200) throw Exception('Erro ao listar repos (HTTP ${res.statusCode})');
-  final raw = await res.transform(utf8.decoder).join();
-  client.close();
-  return jsonDecode(raw) as List;
-}
+  movendo_artefato:
+    name: mover artefato
+    needs: artefato
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-Future<void> _clone(String url, String path) async {
-  final pr = await Process.run('git', ['clone', '--depth', '1', url, path]);
-  if (pr.exitCode != 0) throw Exception('Clone falhou: ${pr.stderr}');
-}
+      - uses: actions/download-artifact@v4
+        with:
+          name: artefatos-v4
+          path: artefatos/
 
-Future<bool> _isValidPlugin(Directory dir) async {
-  final pubspec = File('${dir.path}/pubspec.yaml');
-  if (!pubspec.existsSync()) return false;
-  final content = pubspec.readAsStringSync();
-  return content.contains('executables:') || Directory('${dir.path}/bin').existsSync();
-}
+      - name: Copiar para lib/limbo
+        run: |
+          mkdir -p lib/limbo
+          for f in artefatos/*.dart; do
+            [ -f "$f" ] && cp "$f" lib/limbo/
+          done
 
-Future<String> _buildPrompt(Directory dir, String repo) async {
-  final buffer = StringBuffer()..writeln('Plugin: $repo');
-  final binDir = Directory('${dir.path}/bin');
-  if (binDir.existsSync()) {
-    for (final f in binDir.listSync().whereType<File>().where((f) => f.path.endsWith('.dart'))) {
-      buffer.writeln('Código: ${_basename(f.path, '.dart')}');
-    }
-  }
-  return buffer.toString();
-}
+      - name: Upload da pasta limbo (opcional, se quiser reusar)
+        uses: actions/upload-artifact@v4
+        with:
+          name: limbo-v4
+          path: lib/limbo/
+          retention-days: 1
 
-String _basename(String path, String ext) =>
-    path.split('/').last.replaceAll(ext, '');
+  testes:
+    name: validar artefatos
+    needs: movendo_artefato
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: LIMBO
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-// Sugestões
-// - 🛡️ Adicionar autenticação via token para chamadas à API do GitHub
-// - 🔤 Permitir filtragem por tópicos ou tags nos repositórios
-// - 📦 Integrar com sistema de cache para evitar clones repetidos
-// - 🧩 Criar modo de simulação para testes locais
-// - 🎨 Exibir progresso visual com animações de conjuração
+      - uses: actions/download-artifact@v4
+        with:
+          name: artefatos-v4          # <-- MESMO nome do upload
+          path: artefatos/
 
-// ✍️ byThyrrel  
-// 💡 Código formatado com estilo técnico, seguro e elegante  
-// 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
+      - name: Mover falhos para infernus
+        run: |
+          mkdir -p lib/infernus
+          for f in artefatos/*.dart; do
+            if [ -f "$f" ] && ! dart analyze --fatal-infos "$f"; then
+              cp "$f" lib/infernus/
+            fi
+          done
+
+      - name: Commitar falhos na LIMBO
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '⚠️ Artefatos falhos enviados ao infernus'
+          branch: LIMBO
+          create_branch: true
+
+  valido:
+    name: registrar conjuração
+    needs: testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .github/workflows
+          echo "# Job gerado automaticamente" >> .github/workflows/conjurafor.yml
+
+  ok:
+    name: promover artefatos
+    needs: valido
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: artefatos-v4
+          path: artefatos/
+
+      - name: Distribuir para diretórios finais
+        run: |
+          mkdir -p instrumento ritual extraplanar
+          for f in artefatos/*.dart; do
+            [ -f "$f" ] && cp "$f" instrumento/ && cp "$f" ritual/ && cp "$f" extraplanar/
+          done
+
+      - name: Atualizar README
+        run: |
+          for f in artefatos/*.dart; do
+            [ -f "$f" ] && echo "- $(basename "$f" .dart)" >> README.md
+          done
+
+      - name: Commitar promoções
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '✅ Artefatos promovidos e README atualizado'
+          branch: Tutor-Demoníaco
