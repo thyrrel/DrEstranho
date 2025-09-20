@@ -1,71 +1,51 @@
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ ⚙️ bin/genesis.dart - Ritual mínimo para geração e validação de artefatos ┃
+// ┃ 🔮 bin/genesis.dart - Ritual de leitura e invocação de receitas místicas   ┃
+// ┃ 📜 Estilo byThyrrel | Vasculha recipe/ | Gera artefatos em artefatos/     ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 
-void main() async {
+void main() {
   final recipeDir = Directory('recipe');
+  final outputDir = Directory('artefatos');
+
   if (!recipeDir.existsSync()) {
-    recipeDir.createSync(recursive: true);
-    File('recipe/exemplo.txt').writeAsStringSync('Ritual de exemplo\nLinha 2\nLinha 3');
+    print('❌ Pasta recipe/ não encontrada. Ritual abortado.');
+    exit(1);
   }
 
-  final artefatosDir = Directory('artefatos')..createSync(recursive: true);
+  outputDir.createSync(recursive: true);
 
-  final arquivos = recipeDir
-      .listSync(recursive: true)
+  final recipeFiles = recipeDir
+      .listSync()
       .whereType<File>()
-      .where((f) =>
-          f.path.endsWith('.txt') &&
-          !f.path.contains('_infernus') &&
-          !f.path.contains('/acervo/'))
+      .where((f) => f.path.endsWith('.txt'))
       .toList();
 
-  for (final ritualFile in arquivos) {
-    final nome = ritualFile.uri.pathSegments.last.replaceAll('.txt', '');
-    final artefato = File('artefatos/$nome.dart');
-    final linhas = ritualFile.readAsLinesSync();
-
-    final buffer = StringBuffer()
-      ..writeln('// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓')
-      ..writeln('// ┃ 🔮 Artefato: $nome.dart - Gerado a partir do ritual $nome     ┃')
-      ..writeln('// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛')
-      ..writeln('')
-      ..writeln('void main() {')
-      ..writeln("  print('🧙 Executando ritual: $nome');")
-      ..writeln("  print('━' * 50);");
-
-    for (var i = 0; i < linhas.length; i++) {
-      final linha = linhas[i].trim().replaceAll("'", "\\'");
-      if (linha.isNotEmpty) {
-        buffer.writeln("  print('📜 Passo ${i + 1}: $linha');");
-      }
-    }
-
-    buffer
-      ..writeln("  print('━' * 50);")
-      ..writeln("  print('✨ Ritual $nome concluído com sucesso!');")
-      ..writeln('}')
-      ..writeln('')
-      ..writeln("String getArtefatoInfo() => 'Artefato $nome - Gerado automaticamente';");
-
-    artefato.writeAsStringSync(buffer.toString());
-
-    final result = await Process.run('dart', ['analyze', artefato.path]);
-    if (result.exitCode != 0) {
-      stderr.writeln('⚠️  Análise de $nome: ${result.stdout}');
-    }
+  if (recipeFiles.isEmpty) {
+    print('⚠️ Nenhum arquivo de receita encontrado. Nada será invocado.');
+    exit(0);
   }
+
+  for (final file in recipeFiles) {
+    final content = file.readAsStringSync();
+    final name = file.uri.pathSegments.last.replaceAll('.txt', '');
+    final artifact = '''
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🧱 Artefato: $name.dart - Invocado a partir de recipe/$name.txt           ┃
+// ┃ 🔮 Conteúdo original preservado abaixo                                    ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+void conjurar_$name() {
+  print("🔮 Invocando: $name");
+  print(\"\"\"$content\"\"\");
 }
+''';
 
-// Sugestões
-// - 🛡️ Adicionar tratamento para erros de leitura e escrita
-// - 🔤 Permitir personalização do cabeçalho do artefato
-// - 📦 Integrar com sistema de versionamento dos artefatos
-// - 🧩 Criar modo de simulação sem escrita em disco
-// - 🎨 Exibir progresso visual em interface web ou CLI
+    final output = File('artefatos/$name.dart');
+    output.writeAsStringSync(artifact);
+    print('✅ Artefato gerado: artefatos/$name.dart');
+  }
 
-// ✍️ byThyrrel  
-// 💡 Código formatado com estilo técnico, seguro e elegante  
-// 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
+  print('✨ Ritual concluído com sucesso. Todos os artefatos foram selados.');
+}
