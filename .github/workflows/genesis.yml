@@ -1,3 +1,7 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ ⚙️ genesis.yaml - Ritual inicial com ações encadeadas e seladas           ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 name: Genesis Ritual
 
 on:
@@ -7,119 +11,73 @@ on:
     paths:
       - 'recipe/**'
       - 'bin/genesis.dart'
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   artefato:
     name: 🧱 action: artefato
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - run: dart run bin/genesis.dart
+      - name: 📦 Checkout do grimório
+        uses: actions/checkout@v3
+
+      - name: 🧙 Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: 📦 Instalar dependências
+        run: dart pub get
+
+      - name: 🔮 Invocar rituais e gerar artefatos
+        run: dart run bin/genesis.dart
 
   movendo_artefato:
     name: 📦 action: movendo artefato
     needs: artefato
     runs-on: ubuntu-latest
     steps:
-      - name: Mover artefato para LIMBO/lib/limbo
+      - name: Mover artefatos para LIMBO/lib/limbo
         run: |
-          git config --global user.name "ritual-bot"
-          git config --global user.email "ritual@bot.com"
-          git fetch origin LIMBO
-          git checkout LIMBO
           mkdir -p lib/limbo
           cp artefatos/*.dart lib/limbo/
-          git add lib/limbo/
-          git commit -m "🔮 Artefato movido para LIMBO"
-          git push origin LIMBO
 
   testes:
     name: 🧪 action: testes
     needs: movendo_artefato
     runs-on: ubuntu-latest
     steps:
-      - name: Validar artefato
+      - name: Validar artefatos e simular falhas
         run: |
+          mkdir -p lib/infernus
           for f in artefatos/*.dart; do
-            dart analyze "$f" || echo "$f" >> falhos.txt
-          done
-
-      - name: Tratar falhas
-        run: |
-          if [ -f falhos.txt ]; then
-            git fetch origin LIMBO
-            git checkout LIMBO
-            mkdir -p lib/infernus
-            for f in $(cat falhos.txt); do
+            dart analyze "$f" || (
               nome=$(basename "$f" .dart)
               cp "$f" lib/infernus/
-              git add lib/infernus/
-            done
-            git commit -m "⚠️ Artefatos falhos movidos para infernus"
-            git push origin LIMBO
-
-            git checkout Tutor-Demoníaco
-            for f in $(cat falhos.txt); do
-              nome=$(basename "$f" .dart)
               mv "recipe/$nome.txt" "recipe/${nome}_infernus"
-              git add "recipe/${nome}_infernus"
-            done
-            git commit -m "⚠️ Ritual marcado como infernus"
-            git push origin Tutor-Demoníaco
-          fi
+            )
+          done
 
   valido:
     name: ✅ action: valido
     needs: testes
     runs-on: ubuntu-latest
     steps:
-      - name: Editar conjurafor.yml
+      - name: Editar conjurafor.yml no LIMBO
         run: |
-          git fetch origin LIMBO
-          git checkout LIMBO
           echo "# Novo job para artefato" >> .github/workflows/conjurafor.yml
-          git add .github/workflows/conjurafor.yml
-          git commit -m "✨ Job adicionado ao conjurafor"
-          git push origin LIMBO
 
   ok:
     name: 🪄 action: ok
     needs: valido
     runs-on: ubuntu-latest
     steps:
-      - name: Promover artefato
+      - name: Promover artefato para Instrumentos-Mágicos, GRIMORIO e ExtraPlanares
         run: |
-          git fetch origin Instrumentos-Mágicos
-          git checkout Instrumentos-Mágicos
-          mkdir -p instrumento
+          mkdir -p instrumento ritual extraplanar
           cp artefatos/*.dart instrumento/
-          git add instrumento/
-          git commit -m "🎵 Artefato promovido"
-          git push origin Instrumentos-Mágicos
-
-          git fetch origin GRIMORIO
-          git checkout GRIMORIO
-          mkdir -p ritual
           cp artefatos/*.dart ritual/
-          git add ritual/
-          git commit -m "📜 Artefato promovido"
-          git push origin GRIMORIO
-
-          git fetch origin ExtraPlanares
-          git checkout ExtraPlanares
-          mkdir -p extraplanar
           cp artefatos/*.dart extraplanar/
-          git add extraplanar/
-          git commit -m "🌌 Artefato promovido"
-          git push origin ExtraPlanares
 
-      - name: Atualizar README
+      - name: Atualizar README com nome do artefato
         run: |
           nome=$(basename artefatos/*.dart .dart)
           echo "- $nome" >> README.md
-          git add README.md
-          git commit -m "🪄 Artefato $nome registrado no README"
-          git push origin Tutor-Demoníaco
