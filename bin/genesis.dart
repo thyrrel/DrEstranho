@@ -1,54 +1,94 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔮 bin/genesis.dart - Ritual de leitura e invocação de receitas místicas   ┃
-// ┃ 📜 Estilo byThyrrel | Vasculha recipe/ | Gera artefatos em artefatos/     ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
+import 'dart:convert';
 import 'dart:io';
 
-void main() {
-  final recipeDir = Directory('recipe');
-  final outputDir = Directory('artefatos');
-
-  print('🔍 Iniciando ritual de invocação...');
-  print('📦 Vasculhando pasta: ${recipeDir.path}');
-
-  if (!recipeDir.existsSync()) {
-    print('❌ Pasta recipe/ não encontrada. Ritual abortado.');
-    exit(1);
+Future<void> main() async {
+  // 1. Vasculha todos os repositórios do usuário
+  final repos = await _listRepos();
+  for (final repo in repos) {
+    final name = repo['name'] as String;
+    final cloneUrl = repo['clone_url'] as String;
+    final dir = Directory.systemTemp.createTempSync('repo_$name');
+    print('🔍 Analisando $name');
+    await _clone(cloneUrl, dir.path);
+    if (await _isValidPlugin(dir)) {
+      final prompt = await _buildPrompt(dir, name);
+      File('recipe/$name').writeAsStringSync(prompt);
+      print('✅ Prompt gerado: recipe/$name');
+    }
+    dir.deleteSync(recursive: true);
   }
 
-  outputDir.createSync(recursive: true);
-
-  final recipeFiles = recipeDir
-      .listSync()
+  // 2. Processa arquivos .txt na pasta recipe
+  final recipeDir = Directory('recipe');
+  if (!recipeDir.existsSync()) return;
+  final txts = recipeDir
+      .listSync(recursive: false)
       .whereType<File>()
       .where((f) => f.path.endsWith('.txt'))
       .toList();
 
-  if (recipeFiles.isEmpty) {
-    print('⚠️ Nenhum arquivo de receita encontrado. Nada será invocado.');
-    exit(0);
+  for (final txt in txts) {
+    final base = basename(txt.path, '.txt');
+    final artefato = File('artefatos/$base.dart');
+    final artefatosDir = Directory('artefatos')..createSync(recursive: true);
+
+    // Gera artefato
+    final buffer = StringBuffer()
+      ..writeln('// Plugin: $base')
+      ..writeln('void main() => print(\'Plugin $base carregado\');');
+    artefato.writeAsStringSync(buffer.toString());
+
+    // Valida
+    final result = await Process.run('dart', ['analyze', artefato.path]);
+    if (result.exitCode != 0) {
+      // Falha → renomeia para *_infernus
+      txt.renameSync('recipe/${base}_infernus');
+      print('⚠️ Falhou: $base → ${base}_infernus');
+    } else {
+      // Sucesso → move para /recipes/acervo (sem .txt)
+      final acervo = Directory('recipes/acervo')..createSync(recursive: true);
+      txt.renameSync('recipes/acervo/$base');
+      print('✅ OK: $base movido para acervo');
+    }
   }
-
-  for (final file in recipeFiles) {
-    final content = file.readAsStringSync().trim();
-    final name = file.uri.pathSegments.last.replaceAll('.txt', '');
-    final artifact = '''
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🧱 Artefato: $name.dart - Invocado a partir de recipe/$name.txt           ┃
-// ┃ 🔮 Conteúdo original preservado abaixo                                    ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-void conjurar_$name() {
-  print("🔮 Invocando: $name");
-  print(\"\"\"$content\"\"\");
 }
-''';
 
-    final output = File('${outputDir.path}/$name.dart');
-    output.writeAsStringSync(artifact);
-    print('✅ Artefato selado: ${output.path}');
+Future<List<dynamic>> _listRepos() async {
+  final user = Platform.environment['GITHUB_REPOSITORY_OWNER'] ?? 'thyrrel';
+  final res = await get(Uri.https('api.github.com', '/users/$user/repos'));
+  if (res.statusCode != 200) throw Exception('Erro ao listar repos');
+  return jsonDecode(res.body) as List;
+}
+
+Future<void> _clone(String url, String path) async {
+  final pr = await Process.run('git', ['clone', '--depth', '1', url, path]);
+  if (pr.exitCode != 0) throw Exception('Clone falhou');
+}
+
+Future<bool> _isValidPlugin(Directory dir) async {
+  // Presença de pubspec.yaml com executável ou bin/
+  final pubspec = File('${dir.path}/pubspec.yaml');
+  if (!pubspec.existsSync()) return false;
+  final content = pubspec.readAsStringSync();
+  if (content.contains('executables:') || Directory('${dir.path}/bin').existsSync()) {
+    return true;
   }
-
-  print('✨ Ritual concluído com sucesso. Todos os artefatos foram invocados e selados.');
+  return false;
 }
+
+Future<String> _buildPrompt(Directory dir, String repo) async {
+  final buffer = StringBuffer()..writeln('Plugin: $repo');
+  final binDir = Directory('${dir.path}/bin');
+  if (binDir.existsSync()) {
+    for (final f in binDir.listSync().whereType<File>().where((f) => f.path.endsWith('.dart'))) {
+      buffer.writeln('Código: ${basename(f.path, '.dart')}');
+    }
+  }
+  return buffer.toString();
+}
+
+Future<HttpClientResponse> get(Uri uri) =>
+    HttpClient().getUrl(uri).then((r) => r.close());
+
+String basename(String path, String ext) =>
+    path.split('/').last.replaceAll(ext, '');
