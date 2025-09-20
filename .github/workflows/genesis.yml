@@ -11,8 +11,8 @@ on:
       - 'bin/genesis.dart'
 
 jobs:
-  invocacao:
-    name: 🔮 Invocação dos Rituais
+  invocar_e_validar:
+    name: 🔮 Invocação, Validação e Destino
     runs-on: ubuntu-latest
     steps:
       - name: 📦 Checkout do grimório
@@ -24,17 +24,11 @@ jobs:
       - name: 📦 Instalar dependências
         run: dart pub get
 
-      - name: 🔍 Varrer rituais .txt válidos
-        id: rituais
+      - name: 🔮 Executar rituais .txt válidos
         run: |
-          arquivos=$(find Tutor-Demoníaco/recipes -type f -name '*.txt' ! -name '*infernus.txt' ! -name '*acervo.txt')
-          echo "arquivos<<EOF" >> $GITHUB_OUTPUT
-          echo "$arquivos" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          rituais=$(find Tutor-Demoníaco/recipes -type f -name '*.txt' ! -name '*infernus.txt' ! -name '*acervo.txt')
 
-      - name: 🔮 Executar rituais
-        run: |
-          for ritual in ${{ steps.rituais.outputs.arquivos }}; do
+          for ritual in $rituais; do
             nome=$(basename "$ritual" .txt)
             artefato="artefatos/$nome.dart"
 
@@ -56,7 +50,7 @@ jobs:
                 mv "$artefato" LIMBO/lib/limbo/
                 echo "✅ Ritual aprovado: $nome → limbo"
 
-                tipo=$(grep "^tipo:" "$ritual" | cut -d':' -f2 | tr -d ' ')
+                tipo=$(grep "^tipo:" "$ritual" | cut -d':' -f2 | tr -d '[:space:]')
                 echo "🚀 Invocando destino final: $tipo"
 
                 case "$tipo" in
