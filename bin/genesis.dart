@@ -9,6 +9,9 @@ void main() {
   final recipeDir = Directory('recipe');
   final outputDir = Directory('artefatos');
 
+  print('🔍 Iniciando ritual de invocação...');
+  print('📦 Vasculhando pasta: ${recipeDir.path}');
+
   if (!recipeDir.existsSync()) {
     print('❌ Pasta recipe/ não encontrada. Ritual abortado.');
     exit(1);
@@ -28,7 +31,7 @@ void main() {
   }
 
   for (final file in recipeFiles) {
-    final content = file.readAsStringSync();
+    final content = file.readAsStringSync().trim();
     final name = file.uri.pathSegments.last.replaceAll('.txt', '');
     final artifact = '''
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -42,10 +45,10 @@ void conjurar_$name() {
 }
 ''';
 
-    final output = File('artefatos/$name.dart');
+    final output = File('${outputDir.path}/$name.dart');
     output.writeAsStringSync(artifact);
-    print('✅ Artefato gerado: artefatos/$name.dart');
+    print('✅ Artefato selado: ${output.path}');
   }
 
-  print('✨ Ritual concluído com sucesso. Todos os artefatos foram selados.');
+  print('✨ Ritual concluído com sucesso. Todos os artefatos foram invocados e selados.');
 }
