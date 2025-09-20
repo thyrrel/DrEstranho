@@ -1,10 +1,11 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 📦 pubspec.yaml - Grimório central do pacote ritualístico "tutor"         ┃
+# ┃ 📜 pubspec.yaml - Manifesto ritualístico do projeto Tutor                  ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: tutor
-description: Sistema ritualístico para geração e validação de artefatos mágicos
+description: Sistema ritualistico para geracao e validacao de artefatos magicos
 version: 1.0.0
+publish_to: none
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -20,3 +21,14 @@ dev_dependencies:
 
 executables:
   genesis: genesis
+
+# Sugestões
+# - 🛡️ Adicionar `build_runner` se quiser gerar código automaticamente
+# - 🔤 Incluir `dart_style` para formatação ritualística dos artefatos
+# - 📦 Criar scripts de invocação em `tool/` para modularizar comandos
+# - 🧩 Definir `assets/` se houver recursos mágicos externos
+# - 🎨 Integrar com `melos` se quiser gerenciar múltiplos grimórios
+
+# ✍️ byThyrrel  
+# 💡 Manifesto formatado com estilo técnico, seguro e elegante  
+# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
