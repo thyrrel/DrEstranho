@@ -1,16 +1,9 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🛠️ Prompt - Execução de artefatos mágicos via Instrumentos-Mágicos         ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ⚠️ Ritual: erro.txt - Simulação proposital de falha para testes infernais ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-Execute o ritual `gerador_ritualico.dart` com parâmetros padrão e registre a saída no plano LIMBO.  
-Em seguida, invoque `migrador_grimorio.dart` para transferir os artefatos válidos para GRIMORIO.  
-Finalize com `selador_demoníaco.dart` para aplicar selos mágicos nos rituais aprovados.  
-Retorne status ritualístico, logs detalhados e tempo de execução de cada etapa.
-
-# Sugestões
-# - 🔁 Permitir execução paralela dos rituais
-# - 🧪 Validar artefatos antes da migração
-# - 📜 Gerar relatório ritualístico para auditoria arcana
-
-# ✍️ byThyrrel  
-# 💡 Formato grimório técnico seguro e elegante
+Este ritual contém instruções que não fazem sentido
+A linha abaixo será interpretada como código inválido
+print('Isso vai quebrar o artefato' // falta de fechamento
+Outra linha sem contexto algum
+Finaliza com caos e confusão
