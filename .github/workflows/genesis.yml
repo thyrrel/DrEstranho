@@ -216,4 +216,31 @@ jobs:
     needs: selo
     runs-on: ubuntu-latest
     strategy:
-      matrix
+      matrix:
+        ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
+    steps:
+      - name: Checkout Tutor-Demoníaco
+        uses: actions/checkout@v4
+        with:
+          ref: Tutor-Demoníaco
+
+      - name: Registro em Tutor-Demoníaco
+        run: echo "- ${{ matrix.ritual }}" >> README.md
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '✅ Ascensão: ${{ matrix.ritual }} registrado'
+          branch: Tutor-Demoníaco
+
+      - name: Checkout LIMBO
+        uses: actions/checkout@v4
+        with:
+          ref: LIMBO
+
+      - name: Registro em LIMBO
+        run: echo "- ${{ matrix.ritual }} – plugin funcional" >> README.md
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '✅ Ascensão: ${{ matrix.ritual }} descrição adicionada'
+          branch: LIMBO
