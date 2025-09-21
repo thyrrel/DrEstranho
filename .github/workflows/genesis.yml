@@ -1,3 +1,8 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🔮 genesis.yml – Ritual por ritual: artefato nomeado pelo .txt real         ┃
+# ┃ 📜 byThyrrel | Jobs: Criação, Teleporte, Oráculo, Selo, Ascensão          ┃
+# ┃ 🧙 Checkout primeiro | awk nativo | Sem jq | Sem erros vazios              ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Genesis Ritual
 
 on:
@@ -16,11 +21,17 @@ jobs:
     outputs:
       rituais: ${{ steps.set.outputs.rituais }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout da branch Tutor-Demoníaco
+        uses: actions/checkout@v4
         with:
           ref: Tutor-Demoníaco
-      - id: set
+
+      - name: Listar rituais .txt reais
+        id: set
         run: |
+          echo "=== Arquivos .txt encontrados ==="
+          ls -la recipe/*.txt 2>/dev/null || echo "NENHUM .txt encontrado"
+          echo "================================="
           printf '[' > rituais.json
           first=1
           for f in recipe/*.txt; do
@@ -31,6 +42,7 @@ jobs:
             first=0
           done
           printf ']' >> rituais.json
+          echo "Conteúdo final:" && cat rituais.json
           echo "rituais=$(cat rituais.json)" >> $GITHUB_OUTPUT
 
   teleporte:
@@ -42,16 +54,22 @@ jobs:
       matrix:
         ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout da branch Tutor-Demoníaco
+        uses: actions/checkout@v4
         with:
           ref: Tutor-Demoníaco
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - run: dart run bin/genesis.dart
-      - uses: actions/upload-artifact@v4
+
+      - name: Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Invocar rituais
+        run: dart pub get && dart run bin/genesis.dart
+
+      - name: Upload artefato na PASTA rituais/
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.ritual }}
-          path: artefatos/${{ matrix.ritual }}.dart
+          path: rituais/${{ matrix.ritual }}.dart
           retention-days: 1
           if-no-files-found: error
 
@@ -64,15 +82,20 @@ jobs:
       matrix:
         ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout da branch LIMBO
+        uses: actions/checkout@v4
         with:
           ref: LIMBO
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/download-artifact@v4
+
+      - name: Baixar artefato real
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.ritual }}
           path: lib/limbo/
-      - run: |
+
+      - name: Validar e mover falhos
+        run: |
           mkdir -p lib/infernus
           if ! dart analyze --fatal-infos lib/limbo/${{ matrix.ritual }}.dart; then
             cp lib/limbo/${{ matrix.ritual }}.dart lib/infernus/
@@ -98,18 +121,19 @@ jobs:
               content: Buffer.from('').toString('base64'),
               branch: 'Tutor-Demoníaco'
             });
+            const { data: txt } = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `recipe/${nome}.txt`,
+              ref: 'Tutor-Demoníaco'
+            });
             await github.rest.repos.deleteFile({
               owner: context.repo.owner,
               repo: context.repo.repo,
               path: `recipe/${nome}.txt`,
               message: `🗑️ ${nome}.txt removido (infernus)`,
               branch: 'Tutor-Demoníaco',
-              sha: (await github.rest.repos.getContent({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                path: `recipe/${nome}.txt`,
-                ref: 'Tutor-Demoníaco'
-              })).data.sha
+              sha: txt.sha
             });
 
   selo:
@@ -120,23 +144,28 @@ jobs:
       matrix:
         ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout da branch Tutor-Demoníaco
+        uses: actions/checkout@v4
         with:
           ref: Tutor-Demoníaco
-      - uses: actions/download-artifact@v4
+
+      - name: Baixar artefato real
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.ritual }}
-          path: artefatos/
-      - id: tipo
+          path: rituais/
+
+      - name: Definir branch destino pelo conteúdo do .txt
+        id: tipo
         run: |
-          # Define branch destino pelo conteúdo do .txt (primeira linha)
           tipo=$(head -n1 recipe/${{ matrix.ritual }}.txt | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z]//g')
           case "$tipo" in
-            instrumento|instrumentos|magicos) echo "branch=Instrumentos-Mágicos" >> $GITHUB_OUTPUT ;;
-            grimorio|grimório|magia)        echo "branch=GRIMORIO"           >> $GITHUB_OUTPUT ;;
-            extraplanar|extraplanares)       echo "branch=ExtraPlanares"       >> $GITHUB_OUTPUT ;;
-            *)                               echo "branch=Instrumentos-Mágicos" >> $GITHUB_OUTPUT ;;
-          esac
+            instrumento|instrumentos|magicos) echo "branch=Instrumentos-Mágicos" ;;
+            grimorio|grimório|magia)        echo "branch=GRIMORIO"           ;;
+            extraplanar|extraplanares)       echo "branch=ExtraPlanares"       ;;
+            *)                               echo "branch=Instrumentos-Mágicos" ;;
+          esac >> $GITHUB_OUTPUT
+
       - name: Mover artefato para branch respectiva
         uses: actions/github-script@v7
         with:
@@ -144,7 +173,7 @@ jobs:
             const fs = require('fs');
             const nome   = '${{ matrix.ritual }}';
             const branch = '${{ steps.tipo.outputs.branch }}';
-            const content= fs.readFileSync(`artefatos/${nome}.dart`, 'utf8');
+            const content= fs.readFileSync(`rituais/${nome}.dart`, 'utf8');
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -153,17 +182,18 @@ jobs:
               content: Buffer.from(content).toString('base64'),
               branch: branch
             });
+
       - name: Mover .txt para recipes/acervo (sem extensão)
         uses: actions/github-script@v7
         with:
           script: |
             const nome = '${{ matrix.ritual }}';
-            const txt  = (await github.rest.repos.getContent({
+            const { data: txt } = await github.rest.repos.getContent({
               owner: context.repo.owner,
               repo: context.repo.repo,
               path: `recipe/${nome}.txt`,
               ref: 'Tutor-Demoníaco'
-            })).data;
+            });
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -186,26 +216,4 @@ jobs:
     needs: selo
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: Tutor-Demoníaco
-      - name: Registro em Tutor-Demoníaco
-        run: echo "- ${{ matrix.ritual }}" >> README.md
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: '✅ Ascensão: ${{ matrix.ritual }} registrado'
-          branch: Tutor-Demoníaco
-
-      - uses: actions/checkout@v4
-        with:
-          ref: LIMBO
-      - name: Registro em LIMBO
-        run: |
-          echo "- ${{ matrix.ritual }} – plugin funcional" >> README.md
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: '✅ Ascensão: ${{ matrix.ritual }} descrição adicionada'
-          branch: LIMBO
+      matrix
