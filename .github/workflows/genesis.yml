@@ -1,7 +1,7 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 genesis.yml - Ritual de geração, validação e promoção de artefatos      ┃
+# ┃ 🔮 genesis.yml – Ritual por ritual: artefato nomeado pelo .txt real         ┃
+# ┃ 📜 byThyrrel | Upload/download sincronizados por nome real | Sem mocks      ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 name: Genesis Ritual
 
 on:
@@ -14,8 +14,24 @@ permissions:
   contents: write
 
 jobs:
-  artefato:
+  listar:
+    name: listar rituais
     runs-on: ubuntu-latest
+    outputs:
+      rituais: ${{ steps.set.outputs.rituais }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        run: |
+          echo "rituais=$(ls recipe/*.txt 2>/dev/null | xargs -I {} basename {} .txt | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+
+  artefato:
+    name: criar ${{ matrix.ritual }}
+    needs: listar
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ritual: ${{ fromJson(needs.listar.outputs.rituais) }}
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
@@ -23,48 +39,78 @@ jobs:
       - run: dart run bin/genesis.dart
       - uses: actions/upload-artifact@v4
         with:
-          name: artefatos
-          path: artefatos/
+          name: ${{ matrix.ritual }}
+          path: artefatos/${{ matrix.ritual }}.dart
+          retention-days: 1
+          if-no-files-found: error
 
   movendo_artefato:
-    needs: artefato
+    name: mover artefatos
+    needs: [listar, artefato]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ritual: ${{ fromJson(needs.listar.outputs.rituais) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: artefatos
+          name: ${{ matrix.ritual }}
           path: artefatos/
       - run: |
           mkdir -p lib/limbo
-          for f in artefatos/*.dart; do [ -f "$f" ] && cp "$f" lib/limbo/; done
+          cp artefatos/${{ matrix.ritual }}.dart lib/limbo/
 
   testes:
-    needs: movendo_artefato
+    name: validar ${{ matrix.ritual }}
+    needs: [listar, movendo_artefato]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ritual: ${{ fromJson(needs.listar.outputs.rituais) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: artefatos
+          name: ${{ matrix.ritual }}
           path: artefatos/
       - run: |
           mkdir -p lib/infernus
-          for f in artefatos/*.dart; do
-            if [ -f "$f" ] && ! dart analyze --fatal-infos "$f"; then
-              nome=$(basename "$f" .dart)
-              cp "$f" lib/infernus/
-              [ -f "recipe/$nome.txt" ] && mv "recipe/$nome.txt" "recipe/${nome}_infernus"
-            fi
-          done
+          if ! dart analyze --fatal-infos artefatos/${{ matrix.ritual }}.dart; then
+            cp artefatos/${{ matrix.ritual }}.dart lib/infernus/
+            [ -f "recipe/${{ matrix.ritual }}.txt" ] && mv "recipe/${{ matrix.ritual }}.txt" "recipe/${{ matrix.ritual }}_infernus"
+          fi
 
-# Sugestões
-# - 🛡️ Adicionar job `valido` para registrar artefatos aprovados
-# - 🔤 Criar job `ok` para promover artefatos para diretórios finais
-# - 📦 Publicar artefatos como release ou pacote externo
-# - 🧩 Integrar com sistema de aprovação manual para artefatos críticos
-# - 🎨 Gerar badges visuais para artefatos aprovados no README
+  valido:
+    name: registrar conjuração
+    needs: testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .github/workflows
+          echo "# Job gerado automaticamente" >> .github/workflows/conjurafor.yml
 
-# ✍️ byThyrrel  
-# 💡 Workflow formatado com estilo técnico, seguro e elegante  
-# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
+  ok:
+    name: promover artefatos
+    needs: valido
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ritual: ${{ fromJson(needs.listar.outputs.rituais) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.ritual }}
+          path: artefatos/
+      - run: |
+          mkdir -p instrumento ritual extraplanar
+          cp artefatos/${{ matrix.ritual }}.dart instrumento/
+          cp artefatos/${{ matrix.ritual }}.dart ritual/
+          cp artefatos/${{ matrix.ritual }}.dart extraplanar/
+      - run: echo "- ${{ matrix.ritual }}" >> README.md
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '✅ Promove ${{ matrix.ritual }} e atualiza README'
+          branch: Tutor-Demoníaco
