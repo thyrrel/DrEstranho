@@ -1,0 +1,1 @@
+// Artefato instrumentos_magicos_teste - código placeholder
