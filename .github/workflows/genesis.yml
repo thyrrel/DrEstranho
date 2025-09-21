@@ -1,7 +1,3 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 genesis.yml – Ritual por ritual: artefato nomeado pelo .txt real         ┃
-# ┃ 📜 byThyrrel | Jobs: Criação, Teleporte, Oráculo, Selo, Ascensão          ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Genesis Ritual
 
 on:
@@ -21,22 +17,34 @@ jobs:
       rituais: ${{ steps.set.outputs.rituais }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: Tutor-Demoníaco
       - id: set
         run: |
-          # Lista arquivos .txt e gera JSON array com awk (sem jq)
-          ls recipe/*.txt 2>/dev/null | awk '{gsub(/\.txt$/,"", $0); gsub(/.*\//,"", $0); printf "\"%s\",", $0}' | \
-          awk '{print "[" substr($0,1,length($0)-1) "]"}' > rituais.json
+          printf '[' > rituais.json
+          first=1
+          for f in recipe/*.txt; do
+            [ -e "$f" ] || continue
+            name=$(basename "$f" .txt)
+            [ $first -eq 0 ] && printf ',' >> rituais.json
+            printf '"%s"' "$name" >> rituais.json
+            first=0
+          done
+          printf ']' >> rituais.json
           echo "rituais=$(cat rituais.json)" >> $GITHUB_OUTPUT
 
   teleporte:
     name: Teleporte
     needs: criacao
+    if: needs.criacao.outputs.rituais != '[]'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: Tutor-Demoníaco
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - run: dart run bin/genesis.dart
@@ -50,32 +58,128 @@ jobs:
   oraculo:
     name: Oráculo
     needs: [criacao, teleporte]
+    if: needs.criacao.outputs.rituais != '[]'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: LIMBO
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.ritual }}
-          path: artefatos/
+          path: lib/limbo/
       - run: |
           mkdir -p lib/infernus
-          if ! dart analyze --fatal-infos artefatos/${{ matrix.ritual }}.dart; then
-            cp artefatos/${{ matrix.ritual }}.dart lib/infernus/
-            [ -f "recipe/${{ matrix.ritual }}.txt" ] && mv "recipe/${{ matrix.ritual }}.txt" "recipe/${{ matrix.ritual }}_infernus"
+          if ! dart analyze --fatal-infos lib/limbo/${{ matrix.ritual }}.dart; then
+            cp lib/limbo/${{ matrix.ritual }}.dart lib/infernus/
+            git config user.name "ritual-bot"
+            git config user.email "ritual@bot.com"
+            git add lib/infernus/${{ matrix.ritual }}.dart
+            echo "- ${{ matrix.ritual }} (falha: $(date))" >> README.md
+            git add README.md
+            git commit -m "⚠️ ${{ matrix.ritual }} enviado ao infernus"
+            git push origin LIMBO
           fi
+      - name: Renomear original para _infernus em Tutor-Demoníaco
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const nome = '${{ matrix.ritual }}';
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `recipe/${nome}_infernus`,
+              message: `⚠️ ${nome} marcado como infernus`,
+              content: Buffer.from('').toString('base64'),
+              branch: 'Tutor-Demoníaco'
+            });
+            await github.rest.repos.deleteFile({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `recipe/${nome}.txt`,
+              message: `🗑️ ${nome}.txt removido (infernus)`,
+              branch: 'Tutor-Demoníaco',
+              sha: (await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: `recipe/${nome}.txt`,
+                ref: 'Tutor-Demoníaco'
+              })).data.sha
+            });
 
   selo:
     name: Selo
     needs: oraculo
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          mkdir -p .github/workflows
-          echo "# Job gerado automaticamente" >> .github/workflows/conjurafor.yml
+        with:
+          ref: Tutor-Demoníaco
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.ritual }}
+          path: artefatos/
+      - id: tipo
+        run: |
+          # Define branch destino pelo conteúdo do .txt (primeira linha)
+          tipo=$(head -n1 recipe/${{ matrix.ritual }}.txt | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z]//g')
+          case "$tipo" in
+            instrumento|instrumentos|magicos) echo "branch=Instrumentos-Mágicos" >> $GITHUB_OUTPUT ;;
+            grimorio|grimório|magia)        echo "branch=GRIMORIO"           >> $GITHUB_OUTPUT ;;
+            extraplanar|extraplanares)       echo "branch=ExtraPlanares"       >> $GITHUB_OUTPUT ;;
+            *)                               echo "branch=Instrumentos-Mágicos" >> $GITHUB_OUTPUT ;;
+          esac
+      - name: Mover artefato para branch respectiva
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const nome   = '${{ matrix.ritual }}';
+            const branch = '${{ steps.tipo.outputs.branch }}';
+            const content= fs.readFileSync(`artefatos/${nome}.dart`, 'utf8');
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `${nome}.dart`,
+              message: `✅ Selo: ${nome} promovido para ${branch}`,
+              content: Buffer.from(content).toString('base64'),
+              branch: branch
+            });
+      - name: Mover .txt para recipes/acervo (sem extensão)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const nome = '${{ matrix.ritual }}';
+            const txt  = (await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `recipe/${nome}.txt`,
+              ref: 'Tutor-Demoníaco'
+            })).data;
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `recipes/acervo/${nome}`,
+              message: `📦 ${nome} arquivado em acervo`,
+              content: txt.content,
+              branch: 'Tutor-Demoníaco'
+            });
+            await github.rest.repos.deleteFile({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `recipe/${nome}.txt`,
+              message: `🗑️ ${nome}.txt movido para acervo`,
+              branch: 'Tutor-Demoníaco',
+              sha: txt.sha
+            });
 
   ascensao:
     name: Ascensão
@@ -86,17 +190,22 @@ jobs:
         ritual: ${{ fromJson(needs.criacao.outputs.rituais) }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.ritual }}
-          path: artefatos/
-      - run: |
-          mkdir -p instrumento ritual extraplanar
-          cp artefatos/${{ matrix.ritual }}.dart instrumento/
-          cp artefatos/${{ matrix.ritual }}.dart ritual/
-          cp artefatos/${{ matrix.ritual }}.dart extraplanar/
-      - run: echo "- ${{ matrix.ritual }}" >> README.md
+          ref: Tutor-Demoníaco
+      - name: Registro em Tutor-Demoníaco
+        run: echo "- ${{ matrix.ritual }}" >> README.md
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: '✅ Ascensão: ${{ matrix.ritual }} promovido'
+          commit_message: '✅ Ascensão: ${{ matrix.ritual }} registrado'
           branch: Tutor-Demoníaco
+
+      - uses: actions/checkout@v4
+        with:
+          ref: LIMBO
+      - name: Registro em LIMBO
+        run: |
+          echo "- ${{ matrix.ritual }} – plugin funcional" >> README.md
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '✅ Ascensão: ${{ matrix.ritual }} descrição adicionada'
+          branch: LIMBO
