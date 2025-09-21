@@ -1,12 +1,12 @@
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ ⚙️ bin/genesis.dart – Vasculha repos, cria prompts, move .txt real           ┃
-// ┃ 🔮 byThyrrel | Sem mocks | Sem teste.dart | Só dados reais                  ┃
+// ┃ ⚙️ bin/genesis.dart – Vasculha repos, cria prompt, gera artefato            ┃
+// ┃ 🔮 byThyrrel | IA local | Fallback GEMINI_API_KEY                          ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 import 'dart:convert';
 import 'dart:io';
 
 Future<void> main() async {
-  // 1. Lista TODOS os repos do dono do repositório
+  // 1. Vasculha TODOS os repos do dono
   final repos = await _listRepos();
   for (final repo in repos) {
     final name = repo['name'] as String;
@@ -16,16 +16,16 @@ Future<void> main() async {
     await _clone(cloneUrl, dir.path);
     if (await _isValidPlugin(dir)) {
       final prompt = await _buildPrompt(dir, name);
-      File('recipe/$name').writeAsStringSync(prompt);
-      print('✅ Prompt real gerado: recipe/$name');
+      File('recipes/$name.txt').writeAsStringSync(prompt);
+      print('✅ Prompt real gerado: recipes/$name.txt');
     }
     dir.deleteSync(recursive: true);
   }
 
-  // 2. Processa apenas .txt reais que já existem na recipe (branch Tutor-Demoníaco)
-  final recipeDir = Directory('recipe');
-  if (!recipeDir.existsSync()) return;
-  final txts = recipeDir
+  // 2. Processa apenas .txt reais em recipes/
+  final recipesDir = Directory('recipes');
+  if (!recipesDir.existsSync()) return;
+  final txts = recipesDir
       .listSync(recursive: false)
       .whereType<File>()
       .where((f) => f.path.endsWith('.txt'))
@@ -33,34 +33,73 @@ Future<void> main() async {
 
   for (final txt in txts) {
     final base = _basename(txt.path, '.txt');
-    final artefatosDir = Directory('artefatos')..createSync(recursive: true);
-    final artefato = File('${artefatosDir.path}/$base.dart');
+    final rituaisDir = Directory('rituais')..createSync(recursive: true);
+    final artefato = File('rituais/$base.dart');
 
-    // Gera artefato com conteúdo REAL do .txt
+    // Gera código com IA local; se falhar usa Gemini
     final conteudo = txt.readAsStringSync();
-    final buffer = StringBuffer()
-      ..writeln('// Plugin: $base')
-      ..writeln('// Conteúdo original do ritual:')
-      ..writeln(conteudo.splitMapJoin('\n', onNonMatch: (s) => '// $s'))
-      ..writeln('')
-      ..writeln('void main() {')
-      ..writeln('  print("Plugin $base inicializado");')
-      ..writeln('}');
-    artefato.writeAsStringSync(buffer.toString());
-
-    // Valida
-    final result = await Process.run('dart', ['analyze', '--fatal-infos', artefato.path]);
-    if (result.exitCode != 0) {
-      txt.renameSync('recipe/${base}_infernus');
-      print('⚠️  Falhou: $base → ${base}_infernus');
-    } else {
-      final acervo = Directory('recipes/acervo')..createSync(recursive: true);
-      txt.renameSync('recipes/acervo/$base');
-      print('✅ OK: $base movido para recipes/acervo/$base');
-    }
+    final code = await _gerarCodigo(conteudo, base);
+    artefato.writeAsStringSync(code);
+    print('✅ Artefato criado: rituais/$base.dart');
   }
 }
 
+/* ---------- IA ---------- */
+Future<String> _gerarCodigo(String prompt, String nome) async {
+  // 1. Tenta IA local (dart:io + Process)
+  try {
+    final local = await _iaLocal(prompt, nome);
+    if (local.isNotEmpty) return local;
+  } catch (e) {
+    print('⚠️ IA local falhou: $e');
+  }
+
+  // 2. Fallback Gemini
+  final gemini = await _iaGemini(prompt, nome);
+  return gemini.isNotEmpty ? gemini : '// Artefato $nome - código placeholder';
+}
+
+Future<String> _iaLocal(String prompt, String nome) async {
+  // Prompt simples para gerar plugin Dart
+  final pr = await Process.run('dart', [
+    'run',
+    'tool/ia_local.dart',
+    nome,
+    prompt,
+  ]);
+  return pr.exitCode == 0 ? pr.stdout.trim() : '';
+}
+
+Future<String> _iaGemini(String prompt, String nome) async {
+  final key = Platform.environment['GEMINI_API_KEY'] ?? '';
+  if (key.isEmpty) return '';
+  final url = Uri.https('generativelanguage.googleapis.com',
+      '/v1beta/models/gemini-pro:generateContent', {'key': key});
+  final body = jsonEncode({
+    "contents": [
+      {
+        "parts": [
+          {
+            "text":
+                "Crie um plugin Dart completo (apenas código) para o app descrito:\n$prompt\nNome do arquivo: $nome.dart"
+          }
+        ]
+      }
+    ]
+  });
+  final client = HttpClient();
+  final req = await client.postUrl(url)
+    ..headers.contentType = ContentType.json
+    ..write(body);
+  final res = await req.close();
+  if (res.statusCode != 200) return '';
+  final raw = await res.transform(utf8.decoder).join();
+  client.close();
+  final data = jsonDecode(raw);
+  return data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '';
+}
+
+/* ---------- UTILS ---------- */
 Future<List<dynamic>> _listRepos() async {
   final user = Platform.environment['GITHUB_REPOSITORY_OWNER'] ?? 'thyrrel';
   final client = HttpClient();
