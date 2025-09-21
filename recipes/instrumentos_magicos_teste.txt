@@ -1,9 +1,0 @@
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ⚠️ Ritual: erro.txt - Simulação proposital de falha para testes infernais ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-Este ritual contém instruções que não fazem sentido
-A linha abaixo será interpretada como código inválido
-print('Isso vai quebrar o artefato' // falta de fechamento
-Outra linha sem contexto algum
-Finaliza com caos e confusão
