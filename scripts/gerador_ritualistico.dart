@@ -10,7 +10,7 @@ final instrumentosPath = 'extraplanar/';
 final indexPath = 'lib/ritual_index.dart';
 
 void main() {
-  final dir = Directory(instrumentosPath);
+  final dir = Directory(extraplanarPath);
   final arquivos = dir
       .listSync()
       .whereType<File>()
