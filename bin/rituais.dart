@@ -9,19 +9,19 @@ void main() async {
   final dir = Directory('extraplanar/');
   final arquivos = await dir.list(recursive: false).toList();
 
-  final instrumentos = arquivos
+  final extraplanar = arquivos
       .whereType<File>()
       .where((f) => f.path.endsWith('.dart') && File(f.path).existsSync())
       .toList();
 
-  if (instrumentos.isEmpty) {
-    print('⚠️ Nenhum instrumento encontrado em instrumentos/.');
+  if (extraplanar.isEmpty) {
+    print('⚠️ Nenhum extraplanar encontrado em extraplanar/.');
     return;
   }
 
-  print('🔮 Invocando instrumentos consagrados:\n');
+  print('🔮 Invocando ExtraPlanares consagrados:\n');
 
-  for (var file in instrumentos) {
+  for (var file in extraplanar) {
     final nome = file.uri.pathSegments.last;
     print('✨ Invocando $nome...');
     try {
@@ -43,5 +43,5 @@ void main() async {
     print('─────────────────────────────────────────────');
   }
 
-  print('\n🧙‍♂️ Todos os instrumentos foram invocados.');
+  print('\n🧙‍♂️ Todos os extraplanares foram invocados.');
 }
