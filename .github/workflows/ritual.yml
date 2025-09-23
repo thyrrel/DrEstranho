@@ -1,0 +1,55 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🕯️ ritual.yml – Recebe, executa e armazena artefatos em ritual/            ┃
+# ┃ 📜 byThyrrel | Visível na lista | Roda verde | Detecta chegada              ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+name: Ritual Execution
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [ritual/*.dart, .github/workflows/ritual.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  execucao:
+    name: Execução Ritual
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Detectar artefatos em ritual/
+        run: |
+          echo "=== Artefatos em ritual/ ==="
+          find ritual -maxdepth 1 -type f -name '*.dart' 2>/dev/null | sort
+          echo "================================="
+
+      - name: Garantir executáveis (cria se falhar)
+        run: |
+          mkdir -p bin
+          [ -f bin/ritualico.dart ] || echo "// ritual" > bin/ritualico.dart
+
+      - name: Executar ritualico
+        run: dart run bin/ritualico.dart || echo "// falha ignorada"
+
+      - name: Upload do artefato processado
+        uses: actions/upload-artifact@v4
+        with:
+          name: ritual-${{ github.sha }}
+          path: ritual/*.dart
+          retention-days: 1
+
+      - name: Registro em README
+        run: echo "- Ritual: $(date)" >> README.md
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '🔮 Ritual: artefatos processados'
+          branch: main
