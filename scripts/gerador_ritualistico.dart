@@ -1,12 +1,12 @@
 
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔮 Gerador Ritualístico - Instrumentos Mágicos               ┃
-// ┃ 📜 Atualiza o índice dos instrumentos consagrados            ┃
+// ┃ 🔮 Gerador Ritualístico - ExtraPlanares                       ┃
+// ┃ 📜 Atualiza o índice dos extraplanar consagrados              ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 
-final instrumentosPath = 'instrumentos/';
+final instrumentosPath = 'extraplanar/';
 final indexPath = 'lib/ritual_index.dart';
 
 void main() {
@@ -34,5 +34,5 @@ void main() {
 
   final indexFile = File(indexPath);
   indexFile.writeAsStringSync(buffer.toString());
-  print('📜 ritual_index.dart atualizado com ${arquivos.length} instrumentos.');
+  print('📜 ritual_index.dart atualizado com ${arquivos.length} extraplanar.');
 }
