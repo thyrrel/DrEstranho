@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 limbo.yml – Disparado por qualquer push em LIMBO que contenha .dart     ┃
-# ┃ 📜 byThyrrel | Sem matrix | Sem falhas | Auto-segue após chegada            ┃
+# ┃ 🔮 limbo.yml – Detecta chegada de artefato em lib/limbo/*.dart              ┃
+# ┃ 📜 byThyrrel | Visível na lista | Roda só quando push em LIMBO              ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Limbo Ritual
 
@@ -25,10 +25,10 @@ jobs:
       - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: Listar novos artefatos
-        id: list
+      - name: Detectar artefatos novos
+        id: detect
         run: |
-          # Pega apenas o .dart que acabou de chegar
+          # Arquivos que acabaram de chegar
           mapfile -t files < <(git diff --name-only HEAD~1..HEAD | grep '^lib/limbo/.*\.dart$' || true)
           [ ${#files[@]} -eq 0 ] && echo "Nenhum artefato novo" && exit 0
           printf '%s\n' "${files[@]}" > artefatos.txt
@@ -55,15 +55,3 @@ jobs:
         with:
           commit_message: '🔮 Limbo: validação concluída'
           branch: LIMBO
-
-      - name: Disparar próximo ritual (opcional)
-        if: success()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'oraculo.yml',
-              ref: 'LIMBO'
-            });
