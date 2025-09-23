@@ -6,7 +6,7 @@
 import 'dart:io';
 
 void main() async {
-  final dir = Directory('instrumentos/');
+  final dir = Directory('rituais/');
   final arquivos = await dir.list(recursive: false).toList();
 
   final instrumentos = arquivos
@@ -15,19 +15,19 @@ void main() async {
       .toList();
 
   if (instrumentos.isEmpty) {
-    print('⚠️ Nenhum instrumento mágico encontrado.');
+    print('⚠️ Nenhum Ritual encontrado.');
     return;
   }
 
-  print('🔍 Instrumentos mágicos detectados:');
-  for (var file in instrumentos) {
+  print('🔍 Ritual detectados:');
+  for (var file in rituais) {
     final nome = file.uri.pathSegments.last;
     print('🪄 $nome');
   }
 
   print('\n🔮 Iniciando invocação ritualística...\n');
 
-  for (var file in instrumentos) {
+  for (var file in rituais) {
     final nome = file.uri.pathSegments.last;
     print('✨ Invocando $nome...');
     try {
