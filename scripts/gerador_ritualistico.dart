@@ -1,12 +1,12 @@
 
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 // ┃ 🔮 Gerador Ritualístico - Grimório                            ┃
-// ┃ 📜 Atualiza o índice dos instrumentos consagrados             ┃
+// ┃ 📜 Atualiza o índice dos rituais consagrados             ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 
-final instrumentosPath = 'rituais/';
+final rituaisPath = 'rituais/';
 final indexPath = 'lib/ritual_index.dart';
 
 void main() {
