@@ -7,7 +7,7 @@ name: Validação Ritual
 on:
   push:
     branches: [LIMBO]
-    paths: [lib/limbo/*.dart]
+    paths: [lib/limbo/*.dart, .github/workflows/validação.yml]
 
 permissions:
   contents: write
