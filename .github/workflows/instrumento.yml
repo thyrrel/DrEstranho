@@ -1,29 +1,29 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 instrumento.yml – Ritual de DrEstranho (branch main)                    ┃
+# ┃ 🔮 instrumentos-magicos.yml – Ritual da branch Instrumentos-Mágicos        ┃
 # ┃ 📜 Invoca artefatos em instrumentos/, registra no README.md               ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-name: Instrumento Ritual
+name: Instrumentos Mágicos
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [Instrumentos-Mágicos]
     paths:
       - instrumentos/*.dart
-      - .github/workflows/instrumento.yml
+      - .github/workflows/instrumentos-magicos.yml
 
 permissions:
   contents: write
 
 jobs:
   execucao:
-    name: Execucao Instrumento
+    name: Execução de Instrumento
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
+      - name: Checkout da branch Instrumentos-Mágicos
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: Instrumentos-Mágicos
 
       - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
@@ -34,29 +34,22 @@ jobs:
           find instrumentos -maxdepth 1 -type f -name '*.dart' | sort
           echo "==============================="
 
-      - name: Invocar instrumento
+      - name: Invocar último instrumento
         run: |
           ultimo=$(find instrumentos -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
           echo "✨ Invocando: $ultimo"
           dart run "$ultimo" || echo "// falha ignorada"
 
-      - name: Upload do artefato invocado
-        uses: actions/upload-artifact@v4
-        with:
-          name: instrumento-${{ github.sha }}
-          path: instrumentos/
-          retention-days: 1
-
-      - name: Registrar no README
+      - name: Registrar no README.md
         run: |
-          nome=$(find instrumentos -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1 | xargs basename | sed 's/.dart$//')
-          echo "- $nome" >> README.md
+          nome=$(basename $(find instrumentos -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1) .dart)
+          sed -i "/## Instrumentos/a - $nome" README.md
 
-      - name: Commit automatico
+      - name: Commit automático
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Instrumento invocado por DrEstranho"
-          branch: main
+          commit_message: "Instrumento invocado: $nome"
+          branch: Instrumentos-Mágicos
           file_pattern: README.md
           commit_user_name: ritual-bot
           commit_user_email: ritual@bot.com
