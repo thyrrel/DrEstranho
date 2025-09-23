@@ -1,6 +1,6 @@
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔮 Gerador Ritualístico - Grimório                  ┃
-// ┃ 📜 Atualiza o índice dos instrumentos consagrados   ┃
+// ┃ 🔮 Gerador Ritualístico - Instrumentos Mágicos               ┃
+// ┃ 📜 Atualiza o índice dos instrumentos consagrados            ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
