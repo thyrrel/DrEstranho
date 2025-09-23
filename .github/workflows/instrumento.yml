@@ -47,12 +47,17 @@ jobs:
           path: instrumento/
           retention-days: 1
 
-      - name: Registro em README
-        run: echo "- Instrumento: $(date '+%Y-%m-%d %H:%M:%S')" >> README.md
+      - name: Adicionar nome ao README
+        run: |
+          ultimo=$(find instrumento -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
+          nome=$(basename "$ultimo" .dart)
+          echo "- $nome" >> README.md
 
       - name: Commit automatico
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'Instrumento: artefatos processados'
+          commit_message: "Instrumento: nome registrado"
           branch: main
           file_pattern: README.md
+          commit_user_name: ritual-bot
+          commit_user_email: ritual@bot.com
