@@ -48,9 +48,11 @@ jobs:
           retention-days: 1
 
       - name: Registro em README
-        run: echo "- Instrumento: $(date)" >> README.md
+        run: echo "- Instrumento: $(date '+%Y-%m-%d %H:%M:%S')" >> README.md
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Commit automatico
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: '🔮 Instrumento: artefatos processados'
+          commit_message: 'Instrumento: artefatos processados'
           branch: main
+          file_pattern: README.md
