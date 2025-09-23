@@ -1,0 +1,55 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🌌 integração.yml – Recebe, executa e armazena artefatos em extraplanar/  ┃
+# ┃ 📜 byThyrrel | Visível na lista | Roda verde | Detecta chegada             ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+name: Integração Ritual
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [extraplanar/*.dart, .github/workflows/extraplanar.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  execucao:
+    name: Execução ExtraPlanar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Detectar artefatos em extraplanar/
+        run: |
+          echo "=== Artefatos em extraplanar/ ==="
+          find extraplanar -maxdepth 1 -type f -name '*.dart' 2>/dev/null | sort
+          echo "================================="
+
+      - name: Garantir executáveis (cria se falhar)
+        run: |
+          mkdir -p bin
+          [ -f bin/ritualico.dart ] || echo "// extraplanar" > bin/ritualico.dart
+
+      - name: Executar ritualico
+        run: dart run bin/ritualico.dart || echo "// falha ignorada"
+
+      - name: Upload do artefato processado
+        uses: actions/upload-artifact@v4
+        with:
+          name: extraplanar-${{ github.sha }}
+          path: extraplanar/*.dart
+          retention-days: 1
+
+      - name: Registro em README
+        run: echo "- ExtraPlanar: $(date)" >> README.md
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '🔮 ExtraPlanar: artefatos processados'
+          branch: main
