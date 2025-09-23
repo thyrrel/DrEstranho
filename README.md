@@ -1,4 +1,4 @@
-Instrumentos Magicos.
+# Instrumentos Mágicos.
 
 # Instrumentos Invocados
 
