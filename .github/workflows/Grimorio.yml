@@ -1,0 +1,54 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🏛️ grimorio.yml – Ritual de invocação consagrada                          ┃
+# ┃ 📜 Executa instrumentos aprovados na branch GRIMORIO                       ┃
+# ┃ 🔒 Registra no README e comita com identidade ritualística                ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: GRIMORIO
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [GRIMORIO]
+    paths:
+      - instrumentos/*.dart
+      - .github/workflows/grimorio.yml
+
+permissions:
+  contents: write
+
+jobs:
+  invocacao:
+    name: Invocação Consagrada
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout da branch GRIMORIO
+        uses: actions/checkout@v4
+        with:
+          ref: GRIMORIO
+
+      - name: Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Detectar e invocar último instrumento
+        run: |
+          ultimo=$(find instrumentos -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
+          nome=$(basename "$ultimo" .dart)
+          echo "Invocando: $nome"
+          dart run "$ultimo" || echo "// falha ignorada"
+          echo "$nome" > .instrumento_atual.txt
+
+      - name: Registrar no README.md
+        run: |
+          nome=$(cat .instrumento_atual.txt)
+          grep -q "## Instrumentos" README.md || echo -e "\n## Instrumentos" >> README.md
+          grep -q "^- $nome" README.md || sed -i "/## Instrumentos/a - $nome" README.md
+
+      - name: Commit automático
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Instrumento consagrado invocado: ${{ steps.invocacao.outputs.nome }}"
+          branch: GRIMORIO
+          file_pattern: README.md
+          commit_user_name: ritual-bot
+          commit_user_email: ritual@bot.com
