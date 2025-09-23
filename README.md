@@ -1,4 +1,4 @@
-# Instrumentos Mágicos.
+# GRIMORIO.
 
    # Instrumentos Invocados
 
