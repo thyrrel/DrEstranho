@@ -1,7 +1,7 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔮 Conjurador Inteligente - VDF                     ┃
-// ┃ 🧙‍♂️ Detecta e invoca instrumentos mágicos dinamicamente ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🔮 Conjurador Inteligente - VDF                                                          ┃
+// ┃ 🧙‍♂️ Detecta e invoca instrumentos mágicos dinamicamente em rituais/                       ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 
@@ -15,19 +15,19 @@ void main() async {
       .toList();
 
   if (instrumentos.isEmpty) {
-    print('⚠️ Nenhum Ritual encontrado.');
+    print('⚠️ Nenhum ritual encontrado em rituais/.');
     return;
   }
 
-  print('🔍 Ritual detectados:');
-  for (var file in rituais) {
+  print('🔍 Rituais detectados:');
+  for (var file in instrumentos) {
     final nome = file.uri.pathSegments.last;
     print('🪄 $nome');
   }
 
   print('\n🔮 Iniciando invocação ritualística...\n');
 
-  for (var file in rituais) {
+  for (var file in instrumentos) {
     final nome = file.uri.pathSegments.last;
     print('✨ Invocando $nome...');
     try {
@@ -35,12 +35,16 @@ void main() async {
 
       if (result.exitCode == 0) {
         print('✅ $nome executado com sucesso.');
-        if (result.stdout.toString().trim().isNotEmpty) {
-          print('📜 Saída:\n${result.stdout}');
+        final saida = result.stdout.toString().trim();
+        if (saida.isNotEmpty) {
+          print('📖 Saída:\n$saida');
         }
       } else {
         print('❌ Falha ao executar $nome.');
-        print('🧾 Erro:\n${result.stderr}');
+        final erro = result.stderr.toString().trim();
+        if (erro.isNotEmpty) {
+          print('🧾 Erro:\n$erro');
+        }
       }
     } catch (e) {
       print('💥 Erro ao invocar $nome: $e');
