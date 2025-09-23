@@ -1,5 +1,3 @@
-# GRIMORIO.
-
 # Instrumentos Mágicos da VDF:
 
 Este grimório contém os artefatos mágicos que podem ser invocados dinamicamente pelo Conjurador Inteligente.
