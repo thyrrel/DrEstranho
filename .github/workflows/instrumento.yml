@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 instrumento.yml – Recebe, executa e armazena artefatos em instrumento/  ┃
-# ┃ 📜 byThyrrel | Sem aspas curvas | Sem caracteres especiais                 ┃
+# ┃ 🔮 instrumento.yml – Ritual de DrEstranho (branch main)                    ┃
+# ┃ 📜 Invoca artefatos em instrumentos/, registra no README.md               ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Instrumento Ritual
 
@@ -9,7 +9,7 @@ on:
   push:
     branches: [main]
     paths:
-      - instrumento/*.dart
+      - instrumentos/*.dart
       - .github/workflows/instrumento.yml
 
 permissions:
@@ -28,37 +28,34 @@ jobs:
       - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: Detectar artefatos em instrumento
+      - name: Detectar instrumentos
         run: |
-          echo "=== Artefatos em instrumento/ ==="
-          find instrumento -maxdepth 1 -type f -name '*.dart' 2>/dev/null | sort
-          echo "================================="
+          echo "=== Instrumentos detectados ==="
+          find instrumentos -maxdepth 1 -type f -name '*.dart' | sort
+          echo "==============================="
 
-      - name: Garantir executaveis
+      - name: Invocar instrumento
         run: |
-          mkdir -p bin
-          [ -f bin/ritualico.dart ] || echo "// instrumento" > bin/ritualico.dart
+          ultimo=$(find instrumentos -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
+          echo "✨ Invocando: $ultimo"
+          dart run "$ultimo" || echo "// falha ignorada"
 
-      - name: Executar ritualico
-        run: dart run bin/ritualico.dart || echo "// falha ignorada"
-
-      - name: Upload do artefato processado
+      - name: Upload do artefato invocado
         uses: actions/upload-artifact@v4
         with:
           name: instrumento-${{ github.sha }}
-          path: instrumento/
+          path: instrumentos/
           retention-days: 1
 
-      - name: Adicionar nome ao README
+      - name: Registrar no README
         run: |
-          ultimo=$(find instrumento -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
-          nome=$(basename "$ultimo" .dart)
+          nome=$(find instrumentos -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1 | xargs basename | sed 's/.dart$//')
           echo "- $nome" >> README.md
 
       - name: Commit automatico
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Instrumento: nome registrado"
+          commit_message: "Instrumento invocado por DrEstranho"
           branch: main
           file_pattern: README.md
           commit_user_name: ritual-bot
