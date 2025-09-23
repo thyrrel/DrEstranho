@@ -1,33 +1,69 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🌫️ Validacao.yml - Testes e validação ritualística antes do selamento     ┃
+# ┃ 🔮 limbo.yml – Disparado por qualquer push em LIMBO que contenha .dart     ┃
+# ┃ 📜 byThyrrel | Sem matrix | Sem falhas | Auto-segue após chegada            ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-name: Ritual Validation
+name: Limbo Ritual
 
 on:
   push:
-    paths:
-      - test/**
-      - bin/**
-      - .github/workflows/Validacao.yml
+    branches: [LIMBO]
+    paths: [lib/limbo/*.dart]
+
+permissions:
+  contents: write
 
 jobs:
-  testar_rituais:
+  chegada:
+    name: Chegada
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout do plano LIMBO
-        uses: actions/checkout@v3
+      - name: Checkout LIMBO
+        uses: actions/checkout@v4
+        with:
+          ref: LIMBO
 
-      - name: 🧙 Instalar Dart
+      - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: 🧪 Rodar testes ritualísticos
-        run: dart test
+      - name: Listar novos artefatos
+        id: list
+        run: |
+          # Pega apenas o .dart que acabou de chegar
+          mapfile -t files < <(git diff --name-only HEAD~1..HEAD | grep '^lib/limbo/.*\.dart$' || true)
+          [ ${#files[@]} -eq 0 ] && echo "Nenhum artefato novo" && exit 0
+          printf '%s\n' "${files[@]}" > artefatos.txt
+          echo "Artefatos detectados:"
+          cat artefatos.txt
 
-# Sugestões
-# - 🛡️ Validar estrutura e segurança dos rituais
-# - 📊 Gerar relatórios de falhas e inconsistências
-# - 🔁 Executar testes em múltiplos planos simultaneamente
+      - name: Validar artefato
+        run: |
+          while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            echo "🔍 Analisando $f"
+            if ! dart analyze --fatal-infos "$f"; then
+              echo "❌ $f falhou – movendo para infernus"
+              mv "$f" lib/infernus/
+              nome=$(basename "$f" .dart)
+              echo "- $nome (infernus: $(date))" >> README.md
+            else
+              echo "✅ $f aprovado"
+            fi
+          done < artefatos.txt
 
-# ✍️ byThyrrel  
-# 💡 Formato grimório técnico seguro e elegante
+      - name: Commitar resultados
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '🔮 Limbo: validação concluída'
+          branch: LIMBO
+
+      - name: Disparar próximo ritual (opcional)
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'oraculo.yml',
+              ref: 'LIMBO'
+            });
