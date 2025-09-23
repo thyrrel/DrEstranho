@@ -6,11 +6,11 @@
 
 import 'dart:io';
 
-final instrumentosPath = 'instrumentos/';
+final instrumentosPath = 'rituais/';
 final indexPath = 'lib/ritual_index.dart';
 
 void main() {
-  final dir = Directory(instrumentosPath);
+  final dir = Directory(rituaisPath);
   final arquivos = dir
       .listSync()
       .whereType<File>()
@@ -34,5 +34,5 @@ void main() {
 
   final indexFile = File(indexPath);
   indexFile.writeAsStringSync(buffer.toString());
-  print('📜 ritual_index.dart atualizado com ${arquivos.length} instrumentos.');
+  print('📜 ritual_index.dart atualizado com ${arquivos.length} rituais.');
 }
