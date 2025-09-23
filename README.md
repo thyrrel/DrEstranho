@@ -1,11 +1,21 @@
 # GRIMORIO.
 
-Instrumentos-Mágicos
+# Instrumentos Mágicos da VDF:
 
-Este grimório registra todos os artefatos invocados e selados na pasta `instrumento/`.
+Este grimório contém os artefatos mágicos que podem ser invocados dinamicamente pelo Conjurador Inteligente.
 
-Cada entrada representa um artefato `.dart` que foi executado com sucesso pelo ritualico.
+Os instrumentos são utilizados por DrEstranho em conjurações extraplanares e são mantidos sob vigilância ritualística por Thyrrel.
 
-Os instrumentos aqui selados são utilizados por DrEstranho em conjurações extraplanares.
+## Estrutura:
+
+- `instrumentos_magicos/`: pasta onde os instrumentos `.dart` são armazenados
+- `lib/instrumentos-magicos.dart`: script que detecta e invoca os instrumentos mágicos
+- `bin/gerador_ritualico.dart`: gera testes, simulações e index ritualístico
+- `lib/limbo/`: pasta onde os rituais em validação são mantidos
+- `lib/limbo/ritual_index.dart`: índice dos rituais gerados
+
+## Instrumentos Invocados:
+
+Os nomes abaixo são adicionados automaticamente após cada invocação bem-sucedida:
 
 ## Instrumentos:
