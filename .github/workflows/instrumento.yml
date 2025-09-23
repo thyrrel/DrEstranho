@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ 🔮 instrumento.yml – Recebe, executa e armazena artefatos em instrumento/  ┃
-# ┃ 📜 byThyrrel | Visível na lista | Roda verde | Sem skip                     ┃
+# ┃ 📜 byThyrrel | Sem aspas curvas | Sem caracteres especiais                 ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Instrumento Ritual
 
@@ -15,10 +15,10 @@ permissions:
 
 jobs:
   execucao:
-    name: Execução Instrumento
+    name: Execucao Instrumento
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout DrEstranho (main)
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
           ref: main
@@ -26,13 +26,13 @@ jobs:
       - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: Detectar artefatos em instrumento/
+      - name: Detectar artefatos em instrumento
         run: |
           echo "=== Artefatos em instrumento/ ==="
           find instrumento -maxdepth 1 -type f -name '*.dart' 2>/dev/null | sort
           echo "================================="
 
-      - name: Garantir executáveis (cria se falhar)
+      - name: Garantir executaveis
         run: |
           mkdir -p bin
           [ -f bin/ritualico.dart ] || echo "// instrumento" > bin/ritualico.dart
