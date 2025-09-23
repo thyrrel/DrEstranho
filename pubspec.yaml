@@ -1,9 +1,9 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 📜 pubspec.yaml - Artefatos mágicos que executam rituais invocados         ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 📜 pubspec.yaml - Grimório dos Instrumentos Mágicos ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: instrumentos_magicos
-description: Scripts que executam os rituais invocados pelo conjurador
+description: Artefatos consagrados utilizados por DrEstranho em conjurações extraplanares
 version: 1.0.0
 
 environment:
@@ -15,15 +15,4 @@ dependencies:
   yaml: ^3.1.2
 
 executables:
-  gerador_ritualico: bin/gerador_ritualico.dart
-  migrador_grimorio: bin/migrador_grimorio.dart
-  selador_demoníaco: bin/selador_demoníaco.dart
-
-# Sugestões
-# - 🔄 Suporte a execução sequencial e paralela de rituais
-# - 🧩 Modularização dos artefatos para reutilização
-# - 🧪 Logging detalhado com feedback ritualístico
-# - 🧙‍♂️ Interface CLI para invocação manual
-
-# ✍️ byThyrrel  
-# 💡 Formato grimório técnico seguro e elegante
+  rituais: bin/rituais.dart
