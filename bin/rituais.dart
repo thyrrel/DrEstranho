@@ -1,12 +1,12 @@
 // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 // ┃ 🔮 rituais - Executor do ExtraPlanares.                       ┃
-// ┃ 🧙‍♂️ Invoca todos os instrumentos em instrumentos/              ┃
+// ┃ 🧙‍♂️ Invoca todos os ExtraPlanares em extraplanar/              ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 
 void main() async {
-  final dir = Directory('instrumentos/');
+  final dir = Directory('extraplanar/');
   final arquivos = await dir.list(recursive: false).toList();
 
   final instrumentos = arquivos
