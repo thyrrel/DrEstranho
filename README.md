@@ -1,6 +1,6 @@
 # GRIMORIO.
 
-   # Instrumentos Invocados
+Instrumentos-Mágicos
 
 Este grimório registra todos os artefatos invocados e selados na pasta `instrumento/`.
 
