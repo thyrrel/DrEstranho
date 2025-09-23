@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ 🔮 instrumento.yml – Recebe, executa e armazena artefatos em instrumento/  ┃
-# ┃ 📜 byThyrrel | Visível na lista | Roda verde | Detecta chegada             ┃
+# ┃ 📜 byThyrrel | Visível na lista | Roda verde | Sem skip                     ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Instrumento Ritual
 
@@ -18,7 +18,8 @@ jobs:
     name: Execução Instrumento
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout DrEstranho (main)
+        uses: actions/checkout@v4
         with:
           ref: main
 
@@ -43,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: instrumento-${{ github.sha }}
-          path: instrumento/*.dart
+          path: instrumento/
           retention-days: 1
 
       - name: Registro em README
