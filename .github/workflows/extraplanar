@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🌌 extraplanar.yml – Recebe, executa e armazena artefatos em extraplanar/  ┃
-# ┃ 📜 byThyrrel | Visível na lista | Roda verde | Detecta chegada             ┃
+# ┃ 🌌 extraplanar.yml – Recebe, executa e armazena artefatos em extraplanar/                ┃
+# ┃ 📜 byThyrrel | Visível na lista | Roda verde | Detecta chegada                           ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: ExtraPlanar Ritual
 
