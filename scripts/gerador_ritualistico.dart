@@ -1,8 +1,7 @@
-
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔮 Gerador Ritualístico - Grimório                            ┃
-// ┃ 📜 Atualiza o índice dos rituais consagrados             ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🔮 Gerador Ritualístico - Grimório                                         ┃
+// ┃ 📜 Atualiza o índice dos rituais consagrados com base em rituais/*.dart   ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 
@@ -17,7 +16,14 @@ void main() {
       .where((f) => f.path.endsWith('.dart'))
       .toList();
 
-  final buffer = StringBuffer('final ritualIndex = {\n');
+  final buffer = StringBuffer('''
+/// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/// 📜 ritual_index.dart - Índice dos rituais consagrados
+/// 🔮 Gerado automaticamente pelo gerador ritualístico
+/// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+final ritualIndex = {
+''');
 
   for (var file in arquivos) {
     final nome = file.uri.pathSegments.last.replaceAll('.dart', '');
@@ -26,7 +32,7 @@ void main() {
     buffer.writeln("    'status': 'consagrado',");
     buffer.writeln("    'testado': true,");
     buffer.writeln("    'log': true,");
-    buffer.writeln("    'descricao': '',");
+    buffer.writeln("    'descricao': '', // descrição pendente");
     buffer.writeln("  },");
   }
 
@@ -34,5 +40,6 @@ void main() {
 
   final indexFile = File(indexPath);
   indexFile.writeAsStringSync(buffer.toString());
+
   print('📜 ritual_index.dart atualizado com ${arquivos.length} rituais.');
 }
