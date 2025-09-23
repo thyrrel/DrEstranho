@@ -1,0 +1,48 @@
+name: ExtraPlanares
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ExtraPlanares]
+    paths:
+      - instrumentos/*.dart
+      - .github/workflows/extraplanares.yml
+
+permissions:
+  contents: write
+
+jobs:
+  invocacao:
+    name: Invocação ExtraPlanar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout da branch ExtraPlanares
+        uses: actions/checkout@v4
+        with:
+          ref: ExtraPlanares
+
+      - name: Instalar Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Detectar e invocar último instrumento
+        run: |
+          ultimo=$(find instrumentos -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
+          nome=$(basename "$ultimo" .dart)
+          echo "Invocando: $nome"
+          dart run "$ultimo" || echo "// falha ignorada"
+          echo "$nome" > .instrumento_atual.txt
+
+      - name: Registrar no README.md
+        run: |
+          nome=$(cat .instrumento_atual.txt)
+          grep -q "## Instrumentos" README.md || echo -e "\n## Instrumentos" >> README.md
+          grep -q "^- $nome" README.md || sed -i "/## Instrumentos/a - $nome" README.md
+
+      - name: Commit automático
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Instrumento extraplanar invocado: ${{ steps.invocacao.outputs.nome }}"
+          branch: ExtraPlanares
+          file_pattern: README.md
+          commit_user_name: ritual-bot
+          commit_user_email: ritual@bot.com
