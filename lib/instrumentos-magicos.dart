@@ -6,20 +6,16 @@
 import 'dart:io';
 
 void main() async {
-  final conjuradorPath = 'instrumentos_magicos/conjurador.dart';
-  final dir = Directory('./instrumentos_magicos/');
+  final dir = Directory('instrumentos/');
   final arquivos = await dir.list(recursive: false).toList();
 
   final instrumentos = arquivos
       .whereType<File>()
-      .where((f) =>
-          f.path.endsWith('.dart') &&
-          !f.path.contains('conjurador.dart') &&
-          File(f.path).existsSync())
+      .where((f) => f.path.endsWith('.dart') && File(f.path).existsSync())
       .toList();
 
   if (instrumentos.isEmpty) {
-    print('⚠️ Nenhum instrumento mágico encontrado em instrumentos_magicos/.');
+    print('⚠️ Nenhum instrumento mágico encontrado.');
     return;
   }
 
@@ -53,5 +49,5 @@ void main() async {
     print('─────────────────────────────────────────────');
   }
 
-  print('\n🧙‍♂️ Invocação concluída. Todos os instrumentos foram processados.');
+  print('\n🧙‍♂️ Invocação concluída.');
 }
