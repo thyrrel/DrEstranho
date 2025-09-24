@@ -1,7 +1,7 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🏛️ grimorio.yml – Ritual de invocação consagrada                          ┃
-# ┃ 📜 Executa instrumentos aprovados na branch GRIMORIO                       ┃
-# ┃ 🔒 Registra no README e comita com identidade ritualística                ┃
+# ┃ 🏛️ grimorio.yml – Ritual de invocação consagrada                                         ┃
+# ┃ 📜 Executa rituais aprovados na branch GRIMORIO                                          ┃
+# ┃ 🔒 Registra no README e comita com identidade ritualística                               ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: GRIMORIO
@@ -11,7 +11,7 @@ on:
   push:
     branches: [GRIMORIO]
     paths:
-      - instrumentos/*.dart
+      - rituais/*.dart
       - .github/workflows/grimorio.yml
 
 permissions:
@@ -30,24 +30,24 @@ jobs:
       - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: Detectar e invocar último instrumento
+      - name: Detectar e invocar último ritual
         run: |
-          ultimo=$(find instrumentos -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
+          ultimo=$(find rituais -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
           nome=$(basename "$ultimo" .dart)
           echo "Invocando: $nome"
           dart run "$ultimo" || echo "// falha ignorada"
-          echo "$nome" > .instrumento_atual.txt
+          echo "$nome" > .ritual_atual.txt
 
       - name: Registrar no README.md
         run: |
-          nome=$(cat .instrumento_atual.txt)
-          grep -q "## Instrumentos" README.md || echo -e "\n## Instrumentos" >> README.md
-          grep -q "^- $nome" README.md || sed -i "/## Instrumentos/a - $nome" README.md
+          nome=$(cat .ritual_atual.txt)
+          grep -q "## Rituais" README.md || echo -e "\n## Rituais" >> README.md
+          grep -q "^- $nome" README.md || sed -i "/## Rituais/a - $nome" README.md
 
       - name: Commit automático
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Instrumento consagrado invocado: ${{ steps.invocacao.outputs.nome }}"
+          commit_message: "Ritual consagrado invocado: ${{ steps.invocacao.outputs.nome }}"
           branch: GRIMORIO
           file_pattern: README.md
           commit_user_name: ritual-bot
