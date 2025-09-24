@@ -1,7 +1,7 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🌌 extraplanares.yml – Ritual de invocação dimensional                                   ┃
-# ┃ 📜 Executa rituais aprovados na branch ExtraPlanares                                     ┃
-# ┃ 🔒 Registra no README e comita com identidade ritualística                               ┃
+# ┃ 🌌 extraplanares.yml – Ritual de invocação dimensional                    ┃
+# ┃ 📜 Executa rituais aprovados na branch ExtraPlanares                      ┃
+# ┃ 🔒 Registra no README e comita com identidade ritualística                ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Ritual ExtraPlanares
@@ -23,10 +23,8 @@ jobs:
     name: Invocação Dimensional
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout da branch ExtraPlanares
+      - name: Checkout da branch
         uses: actions/checkout@v4
-        with:
-          ref: ExtraPlanares
 
       - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
@@ -38,8 +36,8 @@ jobs:
           nome=$(basename "$ultimo" .dart)
           echo "Invocando: $nome"
           dart run "$ultimo" || echo "// falha ignorada"
-          echo "ritual_nome=$nome" >> $GITHUB_OUTPUT
           echo "$nome" > .ritual_atual.txt
+          echo "ritual_nome=$nome" >> $GITHUB_OUTPUT
 
       - name: Registrar no README.md
         run: |
