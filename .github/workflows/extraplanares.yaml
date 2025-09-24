@@ -1,7 +1,7 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🌌 extraplanar.yml – Ritual de invocação dimensional                    ┃
-# ┃ 📜 Executa ExtraPlanares em ambiente ExtraPlanar                           ┃
-# ┃ 🔒 Registra no README e comita com identidade ritualística                ┃
+# ┃ 🌌 extraplanares.yml – Ritual de invocação dimensional                                   ┃
+# ┃ 📜 Executa rituais em extraplanar/*.dart na branch ExtraPlanares                         ┃
+# ┃ 🔒 Registra no README e comita com identidade ritualística                               ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: ExtraPlanares
@@ -12,7 +12,7 @@ on:
     branches: [ExtraPlanares]
     paths:
       - extraplanar/*.dart
-      - .github/workflows/extraplanar.yml
+      - .github/workflows/extraplanares.yml
 
 permissions:
   contents: write
@@ -30,24 +30,24 @@ jobs:
       - name: Instalar Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: Detectar e invocar último extraplanar
+      - name: Detectar e invocar último ritual
         run: |
           ultimo=$(find extraplanar -maxdepth 1 -type f -name '*.dart' | sort | tail -n 1)
           nome=$(basename "$ultimo" .dart)
           echo "Invocando: $nome"
           dart run "$ultimo" || echo "// falha ignorada"
-          echo "$nome" > .extraplanar_atual.txt
+          echo "$nome" > .ritual_atual.txt
 
       - name: Registrar no README.md
         run: |
-          nome=$(cat .extraplanar_atual.txt)
-          grep -q "## ExtraPlanares" README.md || echo -e "\n## ExtraPlanares" >> README.md
-          grep -q "^- $nome" README.md || sed -i "/## ExtraPlanares/a - $nome" README.md
+          nome=$(cat .ritual_atual.txt)
+          grep -q "## Rituais" README.md || echo -e "\n## Rituais" >> README.md
+          grep -q "^- $nome" README.md || sed -i "/## Rituais/a - $nome" README.md
 
       - name: Commit automático
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "extraplanar invocado: ${{ steps.invocacao.outputs.nome }}"
+          commit_message: "Ritual extraplanar invocado: ${{ steps.invocacao.outputs.nome }}"
           branch: ExtraPlanares
           file_pattern: README.md
           commit_user_name: ritual-bot
