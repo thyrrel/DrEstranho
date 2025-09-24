@@ -40,8 +40,8 @@ jobs:
 
       - name: Registrar no README.md
         run: |
-          nome=$(cat .ritual_atual.txt)
-          grep -q "## Rituais" README.md || echo -e "\n## Rituais" >> README.md
+          nome=$(cat .extraplanar_atual.txt)
+          grep -q "## ExtraPlanares" README.md || echo -e "\n## Rituais" >> README.md
           grep -q "^- $nome" README.md || sed -i "/## Rituais/a - $nome" README.md
 
       - name: Commit automático
