@@ -18,3 +18,4 @@ Os nomes abaixo são adicionados automaticamente após cada invocação bem-suce
 ## Rituais:
 
 ## Instrumentos
+- vigilancia_silenciosa
