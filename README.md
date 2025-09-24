@@ -1,19 +1,18 @@
-# Instrumentos Mágicos da VDF:
+# Rituais ExtraPlanares da VDF:
 
-Este grimório contém os artefatos mágicos que podem ser invocados dinamicamente pelo Conjurador Inteligente.
+Este plano dimensional contém os artefatos extraplanares que podem ser invocados dinamicamente pelo Conjurador Dimensional.
 
-Os instrumentos são utilizados por DrEstranho em conjurações extraplanares e são mantidos sob vigilância ritualística por Thyrrel.
+Os rituais são utilizados por DrEstranho em conjurações entre planos e são mantidos sob vigilância ritualística por Thyrrel.
 
 ## Estrutura:
 
-- `instrumentos_magicos/`: pasta onde os instrumentos `.dart` são armazenados
-- `lib/instrumentos-magicos.dart`: script que detecta e invoca os instrumentos mágicos
-- `bin/gerador_ritualico.dart`: gera testes, simulações e index ritualístico
-- `lib/limbo/`: pasta onde os rituais em validação são mantidos
-- `lib/limbo/ritual_index.dart`: índice dos rituais gerados
+- `extraplanar/`: pasta onde os rituais `.dart` são armazenados
+- `lib/extraplanar.dart`: script que detecta e invoca os rituais extraplanares
+- `scripts/gerador_ritualistico.dart`: gera o índice ritualístico automaticamente
+- `lib/ritual_index.dart`: índice dos rituais consagrados
 
-## Instrumentos Invocados:
+## Rituais Invocados:
 
 Os nomes abaixo são adicionados automaticamente após cada invocação bem-sucedida:
 
-## Instrumentos:
+## Rituais:
