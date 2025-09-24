@@ -6,13 +6,13 @@ Os instrumentos são utilizados por DrEstranho em conjurações extraplanares e 
 
 ## Estrutura:
 
-- `rituais/`: pasta onde os instrumentos `.dart` são armazenados
-- `lib/ritual.dart`: script que detecta e invoca os instrumentos mágicos
+- `rituais/`: pasta onde os rituaisl `.dart` são armazenados
+- `lib/ritual.dart`: script que detecta e invoca os rituais mágicos
 - `scripts/gerador_rituais.dart`: gera o índice ritualístico automaticamente
-- `lib/ritual_index.dart`: índice dos instrumentos consagrados
+- `lib/ritual_index.dart`: índice dos rituais consagrados
 
-## Instrumentos Invocados:
+## Rituais Invocados:
 
 Os nomes abaixo são adicionados automaticamente após cada invocação bem-sucedida:
 
-## Instrumentos:
+## Rituais:
