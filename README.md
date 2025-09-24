@@ -16,3 +16,5 @@ Os rituais são utilizados por DrEstranho em conjurações entre planos e são m
 Os nomes abaixo são adicionados automaticamente após cada invocação bem-sucedida:
 
 ## Rituais:
+
+## Instrumentos
