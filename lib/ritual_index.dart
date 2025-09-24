@@ -1,28 +1,21 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 📜 ritual_index.dart - Índice dos extraplanares               ┃
-// ┃ 🔮 Mantido no ExtraPlanares, atualizado pelo gerador          ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 📜 ritual_index.dart - Índice dos rituais extraplanares                                  ┃
+// ┃ 🔮 Mantido em ExtraPlanares, atualizado pelo gerador ritualístico                        ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 final ritualIndex = {
-  'espelho': {
+  'eco': {
     'autor': 'Thyrrel',
-    'status': 'consagrado',
-    'testado': true,
+    'status': 'em teste',
+    'testado': false,
     'log': true,
-    'descricao': 'Reflete conjurações dimensionais',
+    'descricao': 'Captura reverberações dimensionais',
   },
-  'lanterna': {
+  'fenda': {
     'autor': 'Thyrrel',
-    'status': 'consagrado',
-    'testado': true,
+    'status': 'em teste',
+    'testado': false,
     'log': false,
-    'descricao': 'Ilumina planos ocultos',
-  },
-  'orbe': {
-    'autor': 'Thyrrel',
-    'status': 'consagrado',
-    'testado': true,
-    'log': true,
-    'descricao': 'Canaliza energia ritualística',
+    'descricao': 'Abre brechas entre planos ocultos',
   },
 };
