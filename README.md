@@ -15,4 +15,4 @@ Os extraplanares são invocasoa por DrEstranho em conjurações entre planos e s
 
 Os nomes abaixo são adicionados automaticamente após cada invocação bem-sucedida:
 
-## Rituais:
+## ExtraPlanares:
