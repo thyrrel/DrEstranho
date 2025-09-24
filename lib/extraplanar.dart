@@ -1,7 +1,7 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🔮 Conjurador Inteligente - VDF                               ┃
-// ┃ 🧙‍♂️ Detecta e invoca ExtraPlanares dinamicamente               ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🔮 Conjurador Dimensional - ExtraPlanares                                                ┃
+// ┃ 📜 Detecta e invoca artefatos em extraplanar/ dinamicamente                              ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:io';
 
@@ -9,25 +9,25 @@ void main() async {
   final dir = Directory('extraplanar/');
   final arquivos = await dir.list(recursive: false).toList();
 
-  final extraplanar = arquivos
+  final rituais = arquivos
       .whereType<File>()
       .where((f) => f.path.endsWith('.dart') && File(f.path).existsSync())
       .toList();
 
-  if (instrumentos.isEmpty) {
-    print('⚠️ Nenhum ectraplanar encontrado.');
+  if (rituais.isEmpty) {
+    print('⚠️ Nenhum ritual extraplanar detectado.');
     return;
   }
 
-  print('🔍 ExtraPlanar detectados:');
-  for (var file in extraplanar) {
+  print('🔍 Rituais detectados:');
+  for (var file in rituais) {
     final nome = file.uri.pathSegments.last;
     print('🪄 $nome');
   }
 
-  print('\n🔮 Iniciando invocação ritualística...\n');
+  print('\n🌌 Iniciando invocação dimensional...\n');
 
-  for (var file in extraplanar) {
+  for (var file in rituais) {
     final nome = file.uri.pathSegments.last;
     print('✨ Invocando $nome...');
     try {
@@ -35,12 +35,16 @@ void main() async {
 
       if (result.exitCode == 0) {
         print('✅ $nome executado com sucesso.');
-        if (result.stdout.toString().trim().isNotEmpty) {
-          print('📜 Saída:\n${result.stdout}');
+        final saida = result.stdout.toString().trim();
+        if (saida.isNotEmpty) {
+          print('📖 Saída:\n$saida');
         }
       } else {
         print('❌ Falha ao executar $nome.');
-        print('🧾 Erro:\n${result.stderr}');
+        final erro = result.stderr.toString().trim();
+        if (erro.isNotEmpty) {
+          print('🧾 Erro:\n$erro');
+        }
       }
     } catch (e) {
       print('💥 Erro ao invocar $nome: $e');
@@ -49,5 +53,5 @@ void main() async {
     print('─────────────────────────────────────────────');
   }
 
-  print('\n🧙‍♂️ Invocação concluída.');
+  print('\n🌌 Invocação dimensional concluída.');
 }
