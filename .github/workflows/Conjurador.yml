@@ -16,14 +16,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+      # ┃ 📦 Etapa 1 - Checkout do Grimório                         ┃
+      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
       - name: 📦 Checkout do Grimório
         uses: actions/checkout@v3
 
+      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+      # ┃ 🔍 Etapa 2 - Identificar ritual criado                   ┃
+      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
       - name: 🔍 Identificar ritual criado
         run: |
-          echo "📜 Procurando arquivos em recipes/"
-          ls recipes/*.txt || echo "Nenhum ritual encontrado."
+          echo "📜 Procurando rituais em recipes/"
+          ls recipes/*.txt || echo "⚠️ Nenhum ritual encontrado."
 
+      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+      # ┃ 🧪 Etapa 3 - Validar estrutura do ritual                 ┃
+      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
       - name: 🧪 Validar estrutura do ritual
         run: |
           for file in recipes/*.txt; do
@@ -31,17 +40,26 @@ jobs:
             grep -q "nome:" "$file" && grep -q "destino:" "$file" && echo "✅ Estrutura válida" || echo "⚠️ Estrutura incompleta"
           done
 
-      - name: 🧠 Registrar ritual na memória
+      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+      # ┃ 🧠 Etapa 4 - Registrar ritual na malha                   ┃
+      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+      - name: 🧠 Registrar ritual na malha
         run: |
           echo "🧠 Ritual registrado na malha dimensional"
           echo "status: em teste" >> recipes/status.log
 
+      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+      # ┃ 🚀 Etapa 5 - Simular execução dimensional                ┃
+      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
       - name: 🚀 Simular execução dimensional
         run: |
           echo "🚀 Executando ritual..."
           sleep 2
           echo "✅ Ritual concluído com sucesso"
 
+      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+      # ┃ 📤 Etapa 6 - Comitar evolução do ritual                  ┃
+      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
       - name: 📤 Comitar evolução do ritual
         run: |
           git config user.name "Tutor-Demoníaco"
