@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ 🧙 mago_supremo.yml – Criação e invocação de rituais dimensionais         ┃
-# ┃ 📍 Roda na MAIN | Sem shell | API GitHub | Jobs com NOME do artefato      ┃
+# ┃ 📍 Roda na MAIN | Sem terminal | API GitHub | Jobs com NOME do artefato   ┃
 # ┃ 🔮 byThyrrel | Sem aspas curvas | Sem comandos incompatíveis              ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Mago Supremo
@@ -22,20 +22,20 @@ permissions:
 
 jobs:
   criar_ritual:
-    name: ✨ Criar artefato .dart
+    name: Criar artefato .dart
     runs-on: ubuntu-latest
     outputs:
       nome: ${{ steps.criar.outputs.nome }}
     steps:
-      - name: 📜 Criar .dart via API (popup → branch Tutor-Demoníaco)
+      - name: Criar .dart via API (popup → branch Tutor-Demoníaco)
         id: criar
         uses: actions/github-script@v7
         with:
           script: |
             const prompt = `${{ inputs.prompt }}`;
             const destino = '${{ inputs.destino }}';
-            const nome    = 'ritual_' + Math.random().toString(36).slice(2);
-            const code    = `// Ritual: ${nome}\n${prompt}\nvoid main() => print("${nome} -> ${destino}");`;
+            const nome = 'ritual_' + Math.random().toString(36).slice(2);
+            const code = `// Ritual: ${nome}\n${prompt}\nvoid main() => print("${nome} -> ${destino}");`;
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -47,13 +47,13 @@ jobs:
             core.setOutput('nome', nome);
 
   acompanhar_fluxo:
-    name: 🔍 Acompanhar fluxo do artefato
+    name: Acompanhar fluxo do artefato
     needs: criar_ritual
     outputs:
       aprovado: ${{ steps.teste.outputs.aprovado }}
     runs-on: ubuntu-latest
     steps:
-      - name: ⏳ Aguardar chegada em /rituais/ (poll)
+      - name: Aguardar chegada em /rituais/ (poll)
         uses: actions/github-script@v7
         with:
           script: |
@@ -77,7 +77,7 @@ jobs:
             }
             if (tentativas === 30) core.setFailed(`❌ ${nome} não chegou em /rituais/`);
 
-      - name: 📦 Mover cópia para LIMBO/lib/limbo/
+      - name: Mover cópia para LIMBO/lib/limbo/
         uses: actions/github-script@v7
         with:
           script: |
@@ -97,12 +97,12 @@ jobs:
               branch: 'LIMBO'
             });
 
-      - name: ✅ Testar (sempre aprova)
+      - name: Testar (sempre aprova)
         id: teste
         run: echo "✅ Teste simulado aprovado para ${{ needs.criar_ritual.outputs.nome }}"
 
   listar_dimensoes:
-    name: 📜 Listar artefatos selados
+    name: Listar artefatos selados
     needs: acompanhar_fluxo
     if: always()
     outputs:
@@ -111,7 +111,7 @@ jobs:
       extraplanares: ${{ steps.listas.outputs.extraplanares }}
     runs-on: ubuntu-latest
     steps:
-      - name: 📚 Listar .dart por dimensão
+      - name: Listar .dart por dimensão
         id: listas
         uses: actions/github-script@v7
         with:
@@ -137,7 +137,7 @@ jobs:
             await listar('ExtraPlanares/extraplanar', 'extraplanares');
 
   invocar_instrumentos:
-    name: 🪄 Instrumentos-Mágicos
+    name: Instrumentos-Mágicos
     needs: listar_dimensoes
     if: fromJson(needs.listar_dimensoes.outputs.instrumentos)[0]
     runs-on: ubuntu-latest
@@ -146,14 +146,14 @@ jobs:
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos) }}
     steps:
-      - name: 🔔 Invocar ${{ matrix.artefato }}
+      - name: Invocar ${{ matrix.artefato }}
         uses: actions/github-script@v7
         with:
           script: |
             core.info(`🔔 Artefato '${{ matrix.artefato }}' pronto para invocação`);
 
   invocar_grimorio:
-    name: 📖 GRIMORIO
+    name: GRIMORIO
     needs: listar_dimensoes
     if: fromJson(needs.listar_dimensoes.outputs.grimorio)[0]
     runs-on: ubuntu-latest
@@ -162,14 +162,14 @@ jobs:
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio) }}
     steps:
-      - name: 🔔 Invocar ${{ matrix.artefato }}
+      - name: Invocar ${{ matrix.artefato }}
         uses: actions/github-script@v7
         with:
           script: |
             core.info(`🔔 Artefato '${{ matrix.artefato }}' pronto para invocação`);
 
   invocar_extraplanares:
-    name: 🌌 ExtraPlanares
+    name: ExtraPlanares
     needs: listar_dimensoes
     if: fromJson(needs.listar_dimensoes.outputs.extraplanares)[0]
     runs-on: ubuntu-latest
@@ -178,7 +178,7 @@ jobs:
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares) }}
     steps:
-      - name: 🔔 Invocar ${{ matrix.artefato }}
+      - name: Invocar ${{ matrix.artefato }}
         uses: actions/github-script@v7
         with:
           script: |
