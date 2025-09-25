@@ -1,32 +1,77 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 📚 MemoriaTestes - Armazena e consulta rituais      ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🧠 MemoriaTestes - Guardião dos registros rituais                    ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'dart:collection';
 
+class RegistroRitual {
+  final String nome;
+  final String origem;
+  final String destino;
+  final String status;
+  final DateTime criadoEm;
+  final Map<String, dynamic> resultados;
+
+  RegistroRitual({
+    required this.nome,
+    required this.origem,
+    required this.destino,
+    required this.status,
+    required this.criadoEm,
+    required this.resultados,
+  });
+
+  @override
+  String toString() {
+    return '🔮 $nome | $status → $destino | Criado em: ${criadoEm.toIso8601String()}';
+  }
+}
+
 class MemoriaTestes {
-  final Map<String, Map<String, dynamic>> _rituais = {};
+  final _registros = HashMap<String, RegistroRitual>();
 
-  void salvar(Map<String, dynamic> relatorio) {
-    final nome = 'ritual_${DateTime.now().millisecondsSinceEpoch}';
-    _rituais[nome] = relatorio;
-    print('📖 Ritual salvo na memória: $nome');
-  }
-
-  Map<String, dynamic>? buscar(String termo) {
-    final resultado = _rituais.entries.firstWhere(
-      (entry) => entry.key.contains(termo),
-      orElse: () => MapEntry('', {}),
+  /// Armazena um novo ritual na memória
+  void registrar({
+    required String nome,
+    required String origem,
+    required String destino,
+    required String status,
+    Map<String, dynamic> resultados = const {},
+  }) {
+    final ritual = RegistroRitual(
+      nome: nome,
+      origem: origem,
+      destino: destino,
+      status: status,
+      criadoEm: DateTime.now(),
+      resultados: resultados,
     );
-    return resultado.value.isNotEmpty ? resultado.value : null;
+
+    _registros[nome] = ritual;
+    print('🧠 Ritual "$nome" registrado com status "$status".');
   }
 
-  List<String> listarRituais() {
-    return _rituais.keys.toList();
-  }
+  /// Consulta um ritual pelo nome
+  RegistroRitual? consultar(String nome) => _registros[nome];
 
-  void limparMemoria() {
-    _rituais.clear();
-    print('🧹 Memória de testes purificada.');
+  /// Lista todos os rituais registrados
+  List<RegistroRitual> listarTodos() => _registros.values.toList();
+
+  /// Atualiza o status de um ritual existente
+  void atualizarStatus(String nome, String novoStatus) {
+    final ritual = _registros[nome];
+    if (ritual != null) {
+      _registros[nome] = RegistroRitual(
+        nome: ritual.nome,
+        origem: ritual.origem,
+        destino: ritual.destino,
+        status: novoStatus,
+        criadoEm: ritual.criadoEm,
+        resultados: ritual.resultados,
+      );
+      print('🔁 Status do ritual "$nome" atualizado para "$novoStatus".');
+    } else {
+      print('⚠️ Ritual "$nome" não encontrado na memória.');
+    }
   }
 }
