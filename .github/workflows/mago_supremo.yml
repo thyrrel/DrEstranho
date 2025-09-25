@@ -1,147 +1,152 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙‍♂️ mago_supremo.yml - Orquestra o ciclo completo dos rituais       ┃
-# ┃ 📍 Executado localmente na branch main                                ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🧙 mago_supremo.yml – Criação e invocação de rituais dimensionais         ┃
+# ┃ 📍 Roda na MAIN | Sem terminal | Sem shell | Apenas GitHub API + Dart     ┃
+# ┃ 🔮 byThyrrel | Jobs com nome do artefato | Invocação clicável             ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Mago Supremo
 
 on:
   workflow_dispatch:
     inputs:
-      nome:
-        description: 'Nome do ritual'
+      prompt:
+        description: "Cole o conteúdo do ritual (será o .dart)"
         required: true
         type: string
       destino:
-        description: 'Destino dimensional'
+        description: "Dimensão final (Instrumentos, GRIMORIO, ExtraPlanares)"
         required: true
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   criar_ritual:
-    name: ✨ Criar ritual inicial
+    name: ✨ Criar ritual em /rituais/
     runs-on: ubuntu-latest
     outputs:
-      nome: ${{ steps.definir.outputs.nome }}
+      nome: ${{ steps.criar.outputs.nome }}
     steps:
-      - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v3
+      - name: 📜 Criar .dart via GitHub API
+        id: criar
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prompt = `${{ inputs.prompt }}`;
+            const destino = '${{ inputs.destino }}';
+            const nome = 'ritual_' + Math.random().toString(36).slice(2);
+            const code = `// Ritual: ${nome}\n${prompt}\nvoid main() => print("${nome} invocado -> ${destino}");`;
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `Tutor-Demoníaco/rituais/${nome}.dart`,
+              message: `Mago: ritual ${nome} criado para ${destino}`,
+              content: Buffer.from(code).toString('base64'),
+              branch: 'Tutor-Demoníaco'
+            });
+            core.setOutput('nome', nome);
 
-      - name: 🧾 Criar arquivo ritualístico
-        id: definir
-        run: |
-          mkdir -p Tutor-Demoníaco/recipes
-          echo "nome: ${{ inputs.nome }}" > Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
-          echo "destino: ${{ inputs.destino }}" >> Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
-          echo "nome=${{ inputs.nome }}" >> $GITHUB_OUTPUT
-
-      - name: 📤 Comitar ritual criado
-        run: |
-          git config --global user.name "DrEstranho"
-          git config --global user.email "magus@vdf.com"
-          git add Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
-          git commit -m "DrEstranho: ritual '${{ inputs.nome }}' criado para '${{ inputs.destino }}'"
-          git push
-
-  acompanhar_fluxo:
-    name: 🔍 Acompanhar fluxo do ritual
-    runs-on: ubuntu-latest
+  mover_para_limbo:
+    name: 🧪 Mover para LIMBO e testar
     needs: criar_ritual
-    steps:
-      - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v3
-
-      - name: 🔍 Verificar presença em /rituais/
-        run: |
-          if [ -f Tutor-Demoníaco/rituais/${{ needs.criar_ritual.outputs.nome }}.dart ]; then
-            echo "✅ Ritual encontrado em /rituais/"
-          else
-            echo "❌ Ritual não encontrado em /rituais/"
-            exit 1
-          fi
-
-      - name: 🔍 Verificar cópia em LIMBO
-        run: |
-          if [ -f lib/limbo/${{ needs.criar_ritual.outputs.nome }}.dart ]; then
-            echo "✅ Artefato em teste na dimensão LIMBO"
-          else
-            echo "❌ Artefato não chegou em LIMBO"
-            exit 1
-          fi
-
-  testar_em_limbo:
-    name: 🧪 Testar artefato em LIMBO
     runs-on: ubuntu-latest
-    needs: acompanhar_fluxo
     steps:
-      - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v3
+      - name: 🔁 Copiar artefato para LIMBO/lib/limbo/
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const nome = '${{ needs.criar_ritual.outputs.nome }}';
+            const { data: original } = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `Tutor-Demoníaco/rituais/${nome}.dart`,
+              ref: 'Tutor-Demoníaco'
+            });
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `lib/limbo/${nome}.dart`,
+              message: `Mago: ${nome} movido para LIMBO`,
+              content: original.content,
+              branch: 'LIMBO'
+            });
 
-      - name: 🧪 Simular testes dimensionais
-        run: |
-          echo "🧪 Testando artefato '${{ needs.criar_ritual.outputs.nome }}'..."
-          sleep 2
-          echo "✅ Teste simulado aprovado"
-
-  preparar_matriz:
-    name: 🧾 Preparar matriz de artefatos
+  listar_dimensoes:
+    name: 📜 Listar artefatos selados
+    needs: mover_para_limbo
     runs-on: ubuntu-latest
-    needs: testar_em_limbo
     outputs:
-      instrumentos: ${{ steps.instrumentos.outputs.lista }}
-      grimorio: ${{ steps.grimorio.outputs.lista }}
-      extraplanares: ${{ steps.extraplanares.outputs.lista }}
+      instrumentos: ${{ steps.listas.outputs.instrumentos }}
+      grimorio: ${{ steps.listas.outputs.grimorio }}
+      extraplanares: ${{ steps.listas.outputs.extraplanares }}
     steps:
-      - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v3
-
-      - name: 📜 Instrumentos-Mágicos
-        id: instrumentos
-        run: |
-          lista=$(ls Instrumentos-Mágicos/instrumentos | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "lista=$lista" >> $GITHUB_OUTPUT
-
-      - name: 📜 GRIMORIO
-        id: grimorio
-        run: |
-          lista=$(ls GRIMORIO/rituais | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "lista=$lista" >> $GITHUB_OUTPUT
-
-      - name: 📜 ExtraPlanares
-        id: extraplanares
-        run: |
-          lista=$(ls ExtraPlanares/extraplanare | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "lista=$lista" >> $GITHUB_OUTPUT
+      - name: 📚 Listar artefatos por dimensão
+        id: listas
+        uses: actions/github-script@v7
+        with:
+          script: |
+            async function listar(path, output) {
+              try {
+                const { data } = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  path,
+                  ref: 'main'
+                });
+                const nomes = Array.isArray(data)
+                  ? data.filter(f => f.name.endsWith('.dart')).map(f => f.name.replace('.dart', ''))
+                  : [];
+                core.setOutput(output, JSON.stringify(nomes));
+              } catch {
+                core.setOutput(output, JSON.stringify([]));
+              }
+            }
+            await listar('Instrumentos-Magicos/instrumentos', 'instrumentos');
+            await listar('GRIMORIO/rituais', 'grimorio');
+            await listar('ExtraPlanares/extraplanar', 'extraplanares');
 
   invocar_instrumentos:
     name: 🪄 Instrumentos-Mágicos
+    needs: listar_dimensoes
     runs-on: ubuntu-latest
-    needs: preparar_matriz
+    if: fromJson(needs.listar_dimensoes.outputs.instrumentos)[0]
     strategy:
       matrix:
-        artefato: ${{ fromJson(needs.preparar_matriz.outputs.instrumentos) }}
+        artefato: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos) }}
     steps:
       - name: 🔔 Invocar ${{ matrix.artefato }}
-        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão Instrumentos-Mágicos"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.info(`🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão Instrumentos-Mágicos`);
 
   invocar_grimorio:
     name: 📖 GRIMORIO
+    needs: listar_dimensoes
     runs-on: ubuntu-latest
-    needs: preparar_matriz
+    if: fromJson(needs.listar_dimensoes.outputs.grimorio)[0]
     strategy:
       matrix:
-        artefato: ${{ fromJson(needs.preparar_matriz.outputs.grimorio) }}
+        artefato: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio) }}
     steps:
       - name: 🔔 Invocar ${{ matrix.artefato }}
-        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão GRIMORIO"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.info(`🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão GRIMORIO`);
 
   invocar_extraplanares:
     name: 🌌 ExtraPlanares
+    needs: listar_dimensoes
     runs-on: ubuntu-latest
-    needs: preparar_matriz
+    if: fromJson(needs.listar_dimensoes.outputs.extraplanares)[0]
     strategy:
       matrix:
-        artefato: ${{ fromJson(needs.preparar_matriz.outputs.extraplanares) }}
+        artefato: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares) }}
     steps:
       - name: 🔔 Invocar ${{ matrix.artefato }}
-        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão ExtraPlanares"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.info(`🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão ExtraPlanares`);
