@@ -21,19 +21,15 @@ jobs:
   criar_ritual:
     name: ✨ Criar ritual inicial
     runs-on: ubuntu-latest
-    outputs:
-      nome: ${{ steps.definir.outputs.nome }}
     steps:
       - name: 📦 Checkout do Grimório
         uses: actions/checkout@v3
 
       - name: 🧾 Criar arquivo ritualístico
-        id: definir
         run: |
           mkdir -p Tutor-Demoníaco/recipes
           echo "nome: ${{ inputs.nome }}" > Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
           echo "destino: ${{ inputs.destino }}" >> Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
-          echo "nome=${{ inputs.nome }}" >> $GITHUB_OUTPUT
 
       - name: 📤 Comitar ritual criado
         run: |
@@ -53,7 +49,7 @@ jobs:
 
       - name: 🔍 Verificar presença em /rituais/
         run: |
-          if [ -f Tutor-Demoníaco/rituais/${{ needs.criar_ritual.outputs.nome }}.dart ]; then
+          if [ -f Tutor-Demoníaco/rituais/${{ inputs.nome }}.dart ]; then
             echo "✅ Ritual encontrado em /rituais/"
           else
             echo "❌ Ritual não encontrado em /rituais/"
@@ -62,7 +58,7 @@ jobs:
 
       - name: 🔍 Verificar cópia em LIMBO
         run: |
-          if [ -f lib/limbo/${{ needs.criar_ritual.outputs.nome }}.dart ]; then
+          if [ -f lib/limbo/${{ inputs.nome }}.dart ]; then
             echo "✅ Artefato em teste na dimensão LIMBO"
           else
             echo "❌ Artefato não chegou em LIMBO"
@@ -79,12 +75,13 @@ jobs:
 
       - name: 🧪 Simular testes dimensionais
         run: |
-          echo "🧪 Testando artefato '${{ needs.criar_ritual.outputs.nome }}'..."
+          echo "🧪 Testando artefato ${{
+            inputs.nome }}..."
           sleep 2
           echo "✅ Teste simulado aprovado"
 
-  preparar_matriz:
-    name: 🧾 Preparar matriz de artefatos
+  verificar_destinos:
+    name: 📜 Verificar selamento final
     runs-on: ubuntu-latest
     needs: testar_em_limbo
     outputs:
@@ -98,28 +95,25 @@ jobs:
       - name: 📜 Instrumentos-Mágicos
         id: instrumentos
         run: |
-          lista=$(ls Instrumentos-Mágicos/instrumentos | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "lista=$lista" >> $GITHUB_OUTPUT
+          echo "lista=$(ls Instrumentos-Mágicos/instrumentos | tr '\n' ',')" >> $GITHUB_OUTPUT
 
       - name: 📜 GRIMORIO
         id: grimorio
         run: |
-          lista=$(ls GRIMORIO/rituais | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "lista=$lista" >> $GITHUB_OUTPUT
+          echo "lista=$(ls GRIMORIO/rituais | tr '\n' ',')" >> $GITHUB_OUTPUT
 
       - name: 📜 ExtraPlanares
         id: extraplanares
         run: |
-          lista=$(ls ExtraPlanares/extraplanare | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "lista=$lista" >> $GITHUB_OUTPUT
+          echo "lista=$(ls ExtraPlanares/extraplanare | tr '\n' ',')" >> $GITHUB_OUTPUT
 
   invocar_instrumentos:
     name: 🪄 Instrumentos-Mágicos
     runs-on: ubuntu-latest
-    needs: preparar_matriz
+    needs: verificar_destinos
     strategy:
       matrix:
-        artefato: ${{ fromJson(needs.preparar_matriz.outputs.instrumentos) }}
+        artefato: [${{ needs.verificar_destinos.outputs.instrumentos }}]
     steps:
       - name: 🔔 Invocar ${{ matrix.artefato }}
         run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão Instrumentos-Mágicos"
@@ -127,10 +121,10 @@ jobs:
   invocar_grimorio:
     name: 📖 GRIMORIO
     runs-on: ubuntu-latest
-    needs: preparar_matriz
+    needs: verificar_destinos
     strategy:
       matrix:
-        artefato: ${{ fromJson(needs.preparar_matriz.outputs.grimorio) }}
+        artefato: [${{ needs.verificar_destinos.outputs.grimorio }}]
     steps:
       - name: 🔔 Invocar ${{ matrix.artefato }}
         run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão GRIMORIO"
@@ -138,10 +132,10 @@ jobs:
   invocar_extraplanares:
     name: 🌌 ExtraPlanares
     runs-on: ubuntu-latest
-    needs: preparar_matriz
+    needs: verificar_destinos
     strategy:
       matrix:
-        artefato: ${{ fromJson(needs.preparar_matriz.outputs.extraplanares) }}
+        artefato: [${{ needs.verificar_destinos.outputs.extraplanares }}]
     steps:
       - name: 🔔 Invocar ${{ matrix.artefato }}
         run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão ExtraPlanares"
