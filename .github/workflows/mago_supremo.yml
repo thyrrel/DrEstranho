@@ -1,20 +1,14 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙 mago_supremo.yml – Solicita prompt, cria .dart, acompanha fluxo        ┃
-# ┃ 📍 Roda na MAIN | Sem detectar .dart inicial | Sem shell | API apenas     ┃
-# ┃ 🔮 byThyrrel | Jobs com NOME do artefato | Clicáveis para invocação       ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 name: Mago Supremo
 
 on:
   workflow_dispatch:
     inputs:
       prompt:
-        description: 'Cole o conteúdo do ritual (será o .dart)'
+        description: "Cole o conteúdo do ritual (será o .dart)"
         required: true
         type: string
       destino:
-        description: 'Dimensão final (Instrumentos, GRIMORIO, ExtraPlanares)'
+        description: "Dimensão final (Instrumentos, GRIMORIO, ExtraPlanares)"
         required: true
         type: string
 
@@ -35,8 +29,8 @@ jobs:
           script: |
             const prompt = `${{ inputs.prompt }}`;
             const destino = '${{ inputs.destino }}';
-            const nome    = 'ritual_' + Math.random().toString(36).slice(2);
-            const code    = `// Ritual: ${nome}\n${prompt}\nvoid main() => print("${nome} invocado -> ${destino}");`;
+            const nome = 'ritual_' + Math.random().toString(36).slice(2);
+            const code = `// Ritual: ${nome}\n${prompt}\nvoid main() => print("${nome} invocado -> ${destino}");`;
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
