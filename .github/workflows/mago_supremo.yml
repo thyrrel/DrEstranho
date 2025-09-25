@@ -1,6 +1,6 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙 mago_supremo.yml – Orquestra criação e invocação de rituais            ┃
-# ┃ 📍 Roda na MAIN | Sem shell | Sem txt | API GitHub | Jobs com NOME real   ┃
+# ┃ 🧙 mago_supremo.yml – Criação e invocação de rituais dimensionais         ┃
+# ┃ 📍 Roda na MAIN | Sem shell | API GitHub | Jobs com NOME do artefato      ┃
 # ┃ 🔮 byThyrrel | Sem aspas curvas | Sem comandos incompatíveis              ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Mago Supremo
@@ -51,6 +51,7 @@ jobs:
     needs: criar_ritual
     outputs:
       aprovado: ${{ steps.teste.outputs.aprovado }}
+    runs-on: ubuntu-latest
     steps:
       - name: ⏳ Aguardar chegada em /rituais/ (poll)
         uses: actions/github-script@v7
@@ -108,6 +109,7 @@ jobs:
       instrumentos: ${{ steps.listas.outputs.instrumentos }}
       grimorio: ${{ steps.listas.outputs.grimorio }}
       extraplanares: ${{ steps.listas.outputs.extraplanares }}
+    runs-on: ubuntu-latest
     steps:
       - name: 📚 Listar .dart por dimensão
         id: listas
