@@ -1,5 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 Conjurador.yml - Workflow dimensional invocado por Tutor-Demoníaco┃
+# ┃ 🔮 Conjurador.yml - Workflow que escuta rituais criados por DrEstranho┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Conjurador Dimensional
@@ -7,12 +7,12 @@ name: Conjurador Dimensional
 on:
   push:
     paths:
-      - 'recipes/*.txt'
+      - 'recipes/**'
   workflow_dispatch:
 
 jobs:
   ritual:
-    name: 🧙‍♂️ Ritual de Invocação
+    name: 🧙‍♂️ Invocação Inicial do Ritual
     runs-on: ubuntu-latest
 
     steps:
@@ -23,12 +23,12 @@ jobs:
         uses: actions/checkout@v3
 
       # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-      # ┃ 🔍 Etapa 2 - Identificar ritual criado                   ┃
+      # ┃ 🔍 Etapa 2 - Identificar novo ritual                     ┃
       # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-      - name: 🔍 Identificar ritual criado
+      - name: 🔍 Identificar novo ritual criado
         run: |
           echo "📜 Procurando rituais em recipes/"
-          ls recipes/*.txt || echo "⚠️ Nenhum ritual encontrado."
+          ls recipes/*.txt || echo "⚠️ Nenhum ritual .txt encontrado."
 
       # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
       # ┃ 🧪 Etapa 3 - Validar estrutura do ritual                 ┃
@@ -53,21 +53,20 @@ jobs:
           echo "status: em teste" >> recipes/status.log
 
       # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-      # ┃ 🚀 Etapa 5 - Simular execução dimensional                ┃
+      # ┃ 🚀 Etapa 5 - Simular envio para LIMBO                    ┃
       # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-      - name: 🚀 Simular execução dimensional
+      - name: 🚀 Simular envio para LIMBO
         run: |
-          echo "🚀 Executando ritual..."
-          sleep 2
-          echo "✅ Ritual concluído com sucesso"
+          echo "🚀 Ritual será transferido para lib/limbo/ na branch LIMBO"
+          echo "📦 Preparando artefato para testes dimensionais"
 
       # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-      # ┃ 📤 Etapa 6 - Comitar evolução do ritual                  ┃
+      # ┃ 📤 Etapa 6 - Comitar evolução ritualística                ┃
       # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-      - name: 📤 Comitar evolução do ritual
+      - name: 📤 Comitar evolução ritualística
         run: |
           git config --global user.name "Tutor-Demoníaco"
           git config --global user.email "ritualista@vdf.com"
-          git add recipes/status.log || echo "⚠️ Nada para adicionar"
-          git commit -m "Tutor-Demoníaco: ritual validado e em teste" || echo "⚠️ Nenhum commit necessário"
-          git push || echo "⚠️ Push não realizado"
+          git add recipes/status.log
+          git commit -m "Tutor-Demoníaco: ritual registrado e pronto para LIMBO"
+          git push
