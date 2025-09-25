@@ -6,7 +6,7 @@
 name: Mago Supremo
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   push:
     branches: [main]
     paths: [Tutor-Demoníaco/rituais/*.dart, .github/workflows/mago_supremo.yml]
@@ -32,7 +32,9 @@ jobs:
               path: 'Tutor-Demoníaco/rituais',
               ref: 'main'
             });
-            const darts = Array.isArray(data) ? data.filter(f => f.name.endsWith('.dart')).map(f => f.name.replace('.dart', '')) : [];
+            const darts = Array.isArray(data)
+              ? data.filter(f => f.name.endsWith('.dart')).map(f => f.name.replace('.dart', ''))
+              : [];
             core.setOutput('artefatos', JSON.stringify(darts));
 
   mover_para_limbo:
@@ -75,4 +77,77 @@ jobs:
         artefato: ${{ fromJson(needs.detectar_chegada.outputs.artefatos) }}
     steps:
       - name: Simular teste (sempre aprova)
-        run: echo "✅ Test
+        run: echo "✅ Teste simulado aprovado para ${{ matrix.artefato }}"
+
+  listar_dimensoes:
+    name: Listar dimensões finais
+    needs: testar_limbo
+    runs-on: ubuntu-latest
+    outputs:
+      instrumentos: ${{ steps.listas.outputs.instrumentos }}
+      grimorio: ${{ steps.listas.outputs.grimorio }}
+      extraplanares: ${{ steps.listas.outputs.extraplanares }}
+    steps:
+      - name: Listar .dart por dimensão
+        id: listas
+        uses: actions/github-script@v7
+        with:
+          script: |
+            async function listDim(path, output) {
+              try {
+                const { data } = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  path,
+                  ref: 'main'
+                });
+                const darts = Array.isArray(data)
+                  ? data.filter(f => f.name.endsWith('.dart')).map(f => f.name.replace('.dart', ''))
+                  : [];
+                core.setOutput(output, JSON.stringify(darts));
+              } catch (e) {
+                core.setOutput(output, JSON.stringify([]));
+              }
+            }
+            await listDim('Instrumentos-Magicos/instrumentos', 'instrumentos');
+            await listDim('GRIMORIO/rituais', 'grimorio');
+            await listDim('ExtraPlanares/extraplanar', 'extraplanares');
+
+  invocar_instrumentos:
+    name: Instrumentos-Mágicos
+    needs: listar_dimensoes
+    runs-on: ubuntu-latest
+    if: fromJson(needs.listar_dimensoes.outputs.instrumentos)[0]
+    strategy:
+      fail-fast: false
+      matrix:
+        artefato: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos) }}
+    steps:
+      - name: Invocar ${{ matrix.artefato }}
+        run: echo "🔔 Artefato '${{ matrix.artefato }}' pronto para invocação"
+
+  invocar_grimorio:
+    name: GRIMORIO
+    needs: listar_dimensoes
+    runs-on: ubuntu-latest
+    if: fromJson(needs.listar_dimensoes.outputs.grimorio)[0]
+    strategy:
+      fail-fast: false
+      matrix:
+        artefato: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio) }}
+    steps:
+      - name: Invocar ${{ matrix.artefato }}
+        run: echo "🔔 Artefato '${{ matrix.artefato }}' pronto para invocação"
+
+  invocar_extraplanares:
+    name: ExtraPlanares
+    needs: listar_dimensoes
+    runs-on: ubuntu-latest
+    if: fromJson(needs.listar_dimensoes.outputs.extraplanares)[0]
+    strategy:
+      fail-fast: false
+      matrix:
+        artefato: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares) }}
+    steps:
+      - name: Invocar ${{ matrix.artefato }}
+        run: echo "🔔 Artefato '${{ matrix.artefato }}' pronto para invocação"
