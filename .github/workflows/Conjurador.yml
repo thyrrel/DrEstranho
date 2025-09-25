@@ -37,7 +37,11 @@ jobs:
         run: |
           for file in recipes/*.txt; do
             echo "🔍 Validando $file"
-            grep -q "nome:" "$file" && grep -q "destino:" "$file" && echo "✅ Estrutura válida" || echo "⚠️ Estrutura incompleta"
+            if grep -q "nome:" "$file" && grep -q "destino:" "$file"; then
+              echo "✅ Estrutura válida"
+            else
+              echo "⚠️ Estrutura incompleta"
+            fi
           done
 
       # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -62,8 +66,8 @@ jobs:
       # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
       - name: 📤 Comitar evolução do ritual
         run: |
-          git config user.name "Tutor-Demoníaco"
-          git config user.email "ritualista@vdf.com"
-          git add recipes/status.log
-          git commit -m "Tutor-Demoníaco: ritual validado e em teste"
-          git push
+          git config --global user.name "Tutor-Demoníaco"
+          git config --global user.email "ritualista@vdf.com"
+          git add recipes/status.log || echo "⚠️ Nada para adicionar"
+          git commit -m "Tutor-Demoníaco: ritual validado e em teste" || echo "⚠️ Nenhum commit necessário"
+          git push || echo "⚠️ Push não realizado"
