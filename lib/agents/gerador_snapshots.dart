@@ -1,46 +1,40 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ ⚡ GeradorSnapshots - Gera dados falsos para testes  ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🧪 GeradorSnapshots - Criador de dados falsos para testes rituais     ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-import '../../core/nova/models/nova_snapshot.dart';
 import 'dart:async';
-import 'dart:math';
+import '../core/nova/models/nova_snapshot.dart';
 
 class GeradorSnapshots {
-  final StreamController<NovaSnapshot> _stream = StreamController.broadcast();
-  final Random _random = Random();
+  final StreamController<NovaSnapshot> _controlador = StreamController<NovaSnapshot>.broadcast();
   Timer? _timer;
+  int _contador = 0;
 
-  void iniciar({Duration intervalo = const Duration(seconds: 3)}) {
+  /// Stream pública para escuta dimensional
+  Stream<NovaSnapshot> get stream => _controlador.stream;
+
+  /// Inicia geração de snapshots falsos com metadados ritualísticos
+  void iniciar({Duration intervalo = const Duration(seconds: 2)}) {
+    print('🔧 GeradorSnapshots iniciado com intervalo de ${intervalo.inSeconds}s.');
+
     _timer = Timer.periodic(intervalo, (_) {
-      final snapshot = _gerar();
-      _stream.add(snapshot);
+      final snapshot = NovaSnapshot(
+        id: 'nó_${_contador + 1}',
+        timestamp: DateTime.now().toIso8601String(),
+        carga: (_contador * 42) % 100,
+        status: _contador % 2 == 0 ? 'ativo' : 'latente',
+      );
+
+      _controlador.add(snapshot);
+      print('📡 Snapshot gerado: ${snapshot.id} | ${snapshot.status}');
+      _contador++;
     });
   }
 
-  void parar() {
+  /// Encerra o ciclo de geração
+  void encerrar() {
     _timer?.cancel();
-    _stream.close();
-  }
-
-  Stream<NovaSnapshot> get stream => _stream.stream;
-
-  NovaSnapshot _gerar() {
-    final carga = _random.nextDouble() * 100;
-    final status = _definirStatus(carga);
-
-    return NovaSnapshot(
-      id: 'snapshot_${DateTime.now().millisecondsSinceEpoch}',
-      timestamp: DateTime.now().toIso8601String(),
-      carga: carga,
-      status: status,
-    );
-  }
-
-  String _definirStatus(double carga) {
-    if (carga > 90) return 'sobrecarga';
-    if (carga < 10) return 'ocioso';
-    if (_random.nextDouble() < 0.05) return 'anômalo';
-    return 'estável';
+    _controlador.close();
+    print('🛑 GeradorSnapshots encerrado.');
   }
 }
