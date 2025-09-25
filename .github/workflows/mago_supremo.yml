@@ -1,8 +1,8 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙 mago_supremo.yml – Orquestra o ciclo completo dos rituais              ┃
-# ┃ 📍 Executado localmente na branch main                                    ┃
-# ┃ 🔮 byThyrrel | Sem jq | Sem aspas curvas | Sem falhas                     ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🧙‍♂️ mago_supremo.yml - Orquestra o ciclo completo dos rituais       ┃
+# ┃ 📍 Executado localmente na branch main                                ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 name: Mago Supremo
 
 on:
@@ -17,9 +17,6 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: write
-
 jobs:
   criar_ritual:
     name: ✨ Criar ritual inicial
@@ -28,9 +25,7 @@ jobs:
       nome: ${{ steps.definir.outputs.nome }}
     steps:
       - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v4
-        with:
-          ref: main
+        uses: actions/checkout@v3
 
       - name: 🧾 Criar arquivo ritualístico
         id: definir
@@ -41,11 +36,12 @@ jobs:
           echo "nome=${{ inputs.nome }}" >> $GITHUB_OUTPUT
 
       - name: 📤 Comitar ritual criado
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "DrEstranho: ritual '${{ inputs.nome }}' criado para '${{ inputs.destino }}'"
-          branch: main
-          file_pattern: Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
+        run: |
+          git config --global user.name "DrEstranho"
+          git config --global user.email "magus@vdf.com"
+          git add Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
+          git commit -m "DrEstranho: ritual '${{ inputs.nome }}' criado para '${{ inputs.destino }}'"
+          git push
 
   acompanhar_fluxo:
     name: 🔍 Acompanhar fluxo do ritual
@@ -53,9 +49,7 @@ jobs:
     needs: criar_ritual
     steps:
       - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v4
-        with:
-          ref: main
+        uses: actions/checkout@v3
 
       - name: 🔍 Verificar presença em /rituais/
         run: |
@@ -81,9 +75,7 @@ jobs:
     needs: acompanhar_fluxo
     steps:
       - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v4
-        with:
-          ref: main
+        uses: actions/checkout@v3
 
       - name: 🧪 Simular testes dimensionais
         run: |
@@ -101,65 +93,31 @@ jobs:
       extraplanares: ${{ steps.extraplanares.outputs.lista }}
     steps:
       - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v4
-        with:
-          ref: main
+        uses: actions/checkout@v3
 
       - name: 📜 Instrumentos-Mágicos
         id: instrumentos
         run: |
-          mkdir -p Instrumentos-Mágicos/instrumentos
-          # Gera array JSON com awk (sem jq)
-          printf '[' > inst.json
-          first=1
-          for f in Instrumentos-Mágicos/instrumentos/*.dart; do
-            [ -e "$f" ] || continue
-            name=$(basename "$f" .dart)
-            [ $first -eq 0 ] && printf ',' >> inst.json
-            printf '"%s"' "$name" >> inst.json
-            first=0
-          done
-          printf ']' >> inst.json
-          echo "lista=$(cat inst.json)" >> $GITHUB_OUTPUT
+          lista=$(ls Instrumentos-Mágicos/instrumentos | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "lista=$lista" >> $GITHUB_OUTPUT
 
       - name: 📜 GRIMORIO
         id: grimorio
         run: |
-          mkdir -p GRIMORIO/rituais
-          printf '[' > grim.json
-          first=1
-          for f in GRIMORIO/rituais/*.dart; do
-            [ -e "$f" ] || continue
-            name=$(basename "$f" .dart)
-            [ $first -eq 0 ] && printf ',' >> grim.json
-            printf '"%s"' "$name" >> grim.json
-            first=0
-          done
-          printf ']' >> grim.json
-          echo "lista=$(cat grim.json)" >> $GITHUB_OUTPUT
+          lista=$(ls GRIMORIO/rituais | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "lista=$lista" >> $GITHUB_OUTPUT
 
       - name: 📜 ExtraPlanares
         id: extraplanares
         run: |
-          mkdir -p ExtraPlanares/extraplanar
-          printf '[' > ext.json
-          first=1
-          for f in ExtraPlanares/extraplanar/*.dart; do
-            [ -e "$f" ] || continue
-            name=$(basename "$f" .dart)
-            [ $first -eq 0 ] && printf ',' >> ext.json
-            printf '"%s"' "$name" >> ext.json
-            first=0
-          done
-          printf ']' >> ext.json
-          echo "lista=$(cat ext.json)" >> $GITHUB_OUTPUT
+          lista=$(ls ExtraPlanares/extraplanare | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "lista=$lista" >> $GITHUB_OUTPUT
 
   invocar_instrumentos:
     name: 🪄 Instrumentos-Mágicos
     runs-on: ubuntu-latest
     needs: preparar_matriz
     strategy:
-      fail-fast: false
       matrix:
         artefato: ${{ fromJson(needs.preparar_matriz.outputs.instrumentos) }}
     steps:
@@ -171,7 +129,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: preparar_matriz
     strategy:
-      fail-fast: false
       matrix:
         artefato: ${{ fromJson(needs.preparar_matriz.outputs.grimorio) }}
     steps:
@@ -183,7 +140,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: preparar_matriz
     strategy:
-      fail-fast: false
       matrix:
         artefato: ${{ fromJson(needs.preparar_matriz.outputs.extraplanares) }}
     steps:
