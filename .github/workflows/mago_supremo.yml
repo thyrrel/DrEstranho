@@ -1,4 +1,3 @@
-erro:
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ 🧙 mago_supremo.yml – Detecta .dart em Tutor-Demoníaco/rituais/           ┃
 # ┃ 📍 Roda na MAIN | Move para LIMBO | Lista jobs com NOME do artefato       ┃
@@ -145,4 +144,7 @@ jobs:
       - name: Invocar ${{ matrix.artefato }}
         run: echo "🔔 Artefato '${{ matrix.artefato }}' pronto para invocação"
 
-assim vamos ajustar, a primeira etapa deve rodar e ao fazer pede para colar o prompt em um popup em actions e ao fazer da sequência
+# assim vamos ajustar, a primeira etapa 
+# deve rodar e ao fazer pede para colar 
+# o prompt em um popup em actions e ao 
+# fazer da sequência.
