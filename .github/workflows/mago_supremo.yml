@@ -133,6 +133,7 @@ jobs:
               }
             }
             await listar('Instrumentos-Magicos/instrumentos', 'instrumentos');
+            
             await listar('GRIMORIO/rituais', 'grimorio');
             await listar('ExtraPlanares/extraplanar', 'extraplanares');
 
