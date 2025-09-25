@@ -1,47 +1,39 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🧪 SimuladorNos - Cria múltiplos MeshAgents simulados ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🧠 SimuladorNos - Entidades que escutam e reagem ao fluxo dimensional┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-import '../../core/nova/mesh/mesh_agent.dart';
-import '../../core/nova/models/nova_snapshot.dart';
-import 'dart:async';
-import 'dart:math';
+import '../core/nova/models/nova_snapshot.dart';
 
 class SimuladorNos {
-  final List<MeshAgent> _nos = [];
-  final int quantidade = 3; // Número de nós simulados
+  final String id;
+  final List<NovaSnapshot> _memoriaLocal = [];
 
-  void criarNos() {
-    print('🧬 Criando $quantidade nós simulados...');
-    for (int i = 0; i < quantidade; i++) {
-      final agente = MeshAgent();
-      agente.start();
+  SimuladorNos(this.id);
 
-      // Simula envio de snapshot a cada 3 segundos
-      Timer.periodic(Duration(seconds: 3), (timer) {
-        final snapshot = _gerarSnapshot(i);
-        agente.broadcastSnapshot(snapshot);
-      });
-
-      _nos.add(agente);
-    }
+  /// Escuta um snapshot e armazena localmente
+  void escutar(NovaSnapshot snapshot) {
+    _memoriaLocal.add(snapshot);
+    print('🧭 Nó "$id" recebeu snapshot: ${snapshot.id} | ${snapshot.status}');
   }
 
-  NovaSnapshot _gerarSnapshot(int id) {
-    final random = Random();
-    return NovaSnapshot(
-      id: 'nó_$id',
-      timestamp: DateTime.now().toIso8601String(),
-      carga: random.nextDouble() * 100,
-      status: random.nextBool() ? 'ativo' : 'ocioso',
-    );
+  /// Retorna os últimos N snapshots escutados
+  List<NovaSnapshot> ultimos({int quantidade = 5}) {
+    final total = _memoriaLocal.length;
+    final inicio = total < quantidade ? 0 : total - quantidade;
+    return _memoriaLocal.sublist(inicio);
   }
 
-  void encerrarNos() {
-    for (final agente in _nos) {
-      agente.stop();
-    }
-    _nos.clear();
-    print('🧹 Nós simulados encerrados.');
+  /// Purifica a memória local do nó
+  void purificar() {
+    _memoriaLocal.clear();
+    print('🧼 Nó "$id" purificado. Memória zerada.');
+  }
+
+  /// Retorna o total de snapshots recebidos
+  int totalRecebido() => _memoriaLocal.length;
+
+  /// Retorna um resumo simbólico do nó
+  String resumo() {
+    return '🔹 Nó "$id" | Total: ${totalRecebido()} | Último: ${_memoriaLocal.isNotEmpty ? _memoriaLocal.last.id : 'nenhum'}';
   }
 }
