@@ -1,8 +1,8 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙‍♂️ mago_supremo.yml - Orquestra o ciclo completo dos rituais       ┃
-# ┃ 📍 Executado localmente na branch main                                ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🧙 mago_supremo.yml – Orquestra o ciclo completo dos rituais              ┃
+# ┃ 📍 Executado na branch main                                                ┃
+# ┃ 🔮 byThyrrel | Sem jq | Sem aspas curvas | Sem falhas                      ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 name: Mago Supremo
 
 on:
@@ -17,71 +17,82 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   criar_ritual:
-    name: ✨ Criar ritual inicial
+    name: Criar ritual inicial
     runs-on: ubuntu-latest
+    outputs:
+      nome: ${{ steps.definir.outputs.nome }}
     steps:
-      - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v3
+      - name: Checkout do Grimorio
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
-      - name: 🧾 Criar arquivo ritualístico
+      - name: Criar arquivo ritualistico
+        id: definir
         run: |
           mkdir -p Tutor-Demoníaco/recipes
           echo "nome: ${{ inputs.nome }}" > Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
           echo "destino: ${{ inputs.destino }}" >> Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
+          echo "nome=${{ inputs.nome }}" >> $GITHUB_OUTPUT
 
-      - name: 📤 Comitar ritual criado
-        run: |
-          git config --global user.name "DrEstranho"
-          git config --global user.email "magus@vdf.com"
-          git add Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
-          git commit -m "DrEstranho: ritual '${{ inputs.nome }}' criado para '${{ inputs.destino }}'"
-          git push
+      - name: Comitar ritual criado
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "DrEstranho: ritual '${{ inputs.nome }}' criado para '${{ inputs.destino }}'"
+          branch: main
+          file_pattern: Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
 
   acompanhar_fluxo:
-    name: 🔍 Acompanhar fluxo do ritual
+    name: Acompanhar fluxo do ritual
     runs-on: ubuntu-latest
     needs: criar_ritual
     steps:
-      - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v3
+      - name: Checkout do Grimorio
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
-      - name: 🔍 Verificar presença em /rituais/
+      - name: Verificar presenca em rituais
         run: |
-          if [ -f Tutor-Demoníaco/rituais/${{ inputs.nome }}.dart ]; then
+          if [ -f Tutor-Demoníaco/rituais/${{ needs.criar_ritual.outputs.nome }}.dart ]; then
             echo "✅ Ritual encontrado em /rituais/"
           else
-            echo "❌ Ritual não encontrado em /rituais/"
+            echo "❌ Ritual nao encontrado em /rituais/"
             exit 1
           fi
 
-      - name: 🔍 Verificar cópia em LIMBO
+      - name: Verificar copia em LIMBO
         run: |
-          if [ -f lib/limbo/${{ inputs.nome }}.dart ]; then
-            echo "✅ Artefato em teste na dimensão LIMBO"
+          if [ -f lib/limbo/${{ needs.criar_ritual.outputs.nome }}.dart ]; then
+            echo "✅ Artefato em teste na dimensao LIMBO"
           else
-            echo "❌ Artefato não chegou em LIMBO"
+            echo "❌ Artefato nao chegou em LIMBO"
             exit 1
           fi
 
   testar_em_limbo:
-    name: 🧪 Testar artefato em LIMBO
+    name: Testar artefato em LIMBO
     runs-on: ubuntu-latest
     needs: acompanhar_fluxo
     steps:
-      - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v3
+      - name: Checkout do Grimorio
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
-      - name: 🧪 Simular testes dimensionais
+      - name: Simular testes dimensionais
         run: |
-          echo "🧪 Testando artefato ${{
-            inputs.nome }}..."
+          echo "🧪 Testando artefato ${{ needs.criar_ritual.outputs.nome }}..."
           sleep 2
           echo "✅ Teste simulado aprovado"
 
   verificar_destinos:
-    name: 📜 Verificar selamento final
+    name: Verificar selamento final
     runs-on: ubuntu-latest
     needs: testar_em_limbo
     outputs:
@@ -89,53 +100,91 @@ jobs:
       grimorio: ${{ steps.grimorio.outputs.lista }}
       extraplanares: ${{ steps.extraplanares.outputs.lista }}
     steps:
-      - name: 📦 Checkout do Grimório
-        uses: actions/checkout@v3
+      - name: Checkout do Grimorio
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
-      - name: 📜 Instrumentos-Mágicos
+      - name: Instrumentos-Magicos
         id: instrumentos
         run: |
-          echo "lista=$(ls Instrumentos-Mágicos/instrumentos | tr '\n' ',')" >> $GITHUB_OUTPUT
+          mkdir -p Instrumentos-Magicos/instrumentos
+          printf '[' > inst.json
+          first=1
+          for f in Instrumentos-Magicos/instrumentos/*.dart; do
+            [ -e "$f" ] || continue
+            name=$(basename "$f" .dart)
+            [ $first -eq 0 ] && printf ',' >> inst.json
+            printf '"%s"' "$name" >> inst.json
+            first=0
+          done
+          printf ']' >> inst.json
+          echo "lista=$(cat inst.json)" >> $GITHUB_OUTPUT
 
-      - name: 📜 GRIMORIO
+      - name: GRIMORIO
         id: grimorio
         run: |
-          echo "lista=$(ls GRIMORIO/rituais | tr '\n' ',')" >> $GITHUB_OUTPUT
+          mkdir -p GRIMORIO/rituais
+          printf '[' > grim.json
+          first=1
+          for f in GRIMORIO/rituais/*.dart; do
+            [ -e "$f" ] || continue
+            name=$(basename "$f" .dart)
+            [ $first -eq 0 ] && printf ',' >> grim.json
+            printf '"%s"' "$name" >> grim.json
+            first=0
+          done
+          printf ']' >> grim.json
+          echo "lista=$(cat grim.json)" >> $GITHUB_OUTPUT
 
-      - name: 📜 ExtraPlanares
+      - name: ExtraPlanares
         id: extraplanares
         run: |
-          echo "lista=$(ls ExtraPlanares/extraplanare | tr '\n' ',')" >> $GITHUB_OUTPUT
+          mkdir -p ExtraPlanares/extraplanar
+          printf '[' > ext.json
+          first=1
+          for f in ExtraPlanares/extraplanar/*.dart; do
+            [ -e "$f" ] || continue
+            name=$(basename "$f" .dart)
+            [ $first -eq 0 ] && printf ',' >> ext.json
+            printf '"%s"' "$name" >> ext.json
+            first=0
+          done
+          printf ']' >> ext.json
+          echo "lista=$(cat ext.json)" >> $GITHUB_OUTPUT
 
   invocar_instrumentos:
-    name: 🪄 Instrumentos-Mágicos
+    name: Invocar Instrumentos
     runs-on: ubuntu-latest
     needs: verificar_destinos
     strategy:
+      fail-fast: false
       matrix:
-        artefato: [${{ needs.verificar_destinos.outputs.instrumentos }}]
+        artefato: ${{ fromJson(needs.verificar_destinos.outputs.instrumentos) }}
     steps:
-      - name: 🔔 Invocar ${{ matrix.artefato }}
-        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão Instrumentos-Mágicos"
+      - name: Invocar artefato
+        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensao Instrumentos-Magicos"
 
   invocar_grimorio:
-    name: 📖 GRIMORIO
+    name: Invocar GRIMORIO
     runs-on: ubuntu-latest
     needs: verificar_destinos
     strategy:
+      fail-fast: false
       matrix:
-        artefato: [${{ needs.verificar_destinos.outputs.grimorio }}]
+        artefato: ${{ fromJson(needs.verificar_destinos.outputs.grimorio) }}
     steps:
-      - name: 🔔 Invocar ${{ matrix.artefato }}
-        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão GRIMORIO"
+      - name: Invocar artefato
+        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensao GRIMORIO"
 
   invocar_extraplanares:
-    name: 🌌 ExtraPlanares
+    name: Invocar ExtraPlanares
     runs-on: ubuntu-latest
     needs: verificar_destinos
     strategy:
+      fail-fast: false
       matrix:
-        artefato: [${{ needs.verificar_destinos.outputs.extraplanares }}]
+        artefato: ${{ fromJson(needs.verificar_destinos.outputs.extraplanares) }}
     steps:
-      - name: 🔔 Invocar ${{ matrix.artefato }}
-        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensão ExtraPlanares"
+      - name: Invocar artefato
+        run: echo "🔔 Artefato '${{ matrix.artefato }}' invocado da dimensao ExtraPlanares"
