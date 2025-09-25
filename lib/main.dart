@@ -3,17 +3,17 @@
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import 'core/dr_estranho_promptor.dart';
+import 'core/observador_dimensional.dart';
 
 void main() {
-  print('🌀 Invocando DrEstranho na DimensãoEspelhada...');
-
-  final promptor = DrEstranhoPromptor();
-
-  // Nome do ritual e destino final
+  print('🌌 Invocando DrEstranho na DimensãoEspelhada...');
   final nomeRitual = 'vigilancia_silenciosa';
   final destinoFinal = 'Instrumentos-Magicos';
 
-  // Criação do prompt ritualístico
+  // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  // ┃ 📜 Etapa 1 - Criar o prompt ritualístico em recipes/       ┃
+  // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  final promptor = DrEstranhoPromptor();
   promptor.criarPromptDimensional(
     nome: nomeRitual,
     destino: destinoFinal,
@@ -22,6 +22,12 @@ void main() {
     branchOrigem: 'Tutor-Demoníaco',
   );
 
-  print('🔮 Ritual "$nomeRitual" preparado. Tutor-Demoníaco deve iniciar o fluxo.');
-  print('👁️ DrEstranho aguardando validação e selamento dimensional...');
+  // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  // ┃ 👁️ Etapa 2 - Observar o status do ritual criado           ┃
+  // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  final observador = ObservadorDimensional();
+  final status = observador.observarStatus(nomeRitual);
+
+  print('🔍 Status atual do ritual "$nomeRitual":');
+  print(status);
 }
