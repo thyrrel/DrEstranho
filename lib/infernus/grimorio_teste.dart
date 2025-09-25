@@ -1,1 +1,0 @@
-// Artefato grimorio_teste - código placeholder
