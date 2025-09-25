@@ -1,69 +1,62 @@
-// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-// ┃ 🧠 DrEstranho - Orquestrador da DimensãoEspelhada    ┃
-// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+// ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+// ┃ 🧙‍♂️ DrEstranho - Conjurador central da malha dimensional            ┃
+// ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-import 'agents/simulador_nos.dart';
+import 'core/dr_estranho_promptor.dart';
+import 'core/observador_dimensional.dart';
+import 'core/memoria_testes.dart';
+import 'core/veritas_index.dart';
+
 import 'agents/gerador_snapshots.dart';
 import 'agents/monitor_fluxo.dart';
-import 'core/memoria_testes.dart';
-
-// Plugins (vindos de branches separadas)
-import 'core/plugin_watchhound.dart';
-import 'core/plugin_purificador.dart';
-import 'core/plugin_organix.dart';
-import 'core/plugin_cyberguard.dart';
-import 'core/plugin_digitalforge.dart';
+import 'agents/simulador_nos.dart';
 
 void main() {
-  final simulador = SimuladorNos();
+  print('🌌 Invocando DrEstranho na DimensãoEspelhada...');
+
+  // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  // ┃ 📜 Etapa 1 - Criar ritual em recipes/                      ┃
+  // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  final nomeRitual = 'vigilancia_silenciosa';
+  final destinoFinal = 'Instrumentos-Magicos';
+
+  final promptor = DrEstranhoPromptor();
+  promptor.criarPromptDimensional(
+    nome: nomeRitual,
+    destino: destinoFinal,
+    autor: 'Tiago',
+    workflow: 'Conjurador.yml',
+    branchOrigem: 'Tutor-Demoníaco',
+  );
+
+  // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  // ┃ 👁️ Etapa 2 - Observar status do ritual                    ┃
+  // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  final observador = ObservadorDimensional();
+  final status = observador.observarStatus(nomeRitual);
+  print('🔍 Status ritual "$nomeRitual": $status');
+
+  // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  // ┃ 🧠 Etapa 3 - Registrar ritual na memória de testes         ┃
+  // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  final memoria = MemoriaTestes();
+  memoria.registrar(
+    nome: nomeRitual,
+    origem: 'recipes/',
+    destino: destinoFinal,
+    status: status.contains('operacional') ? 'operacional' : 'pendente',
+  );
+
+  // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  // ┃ 📡 Etapa 4 - Iniciar escuta de snapshots                   ┃
+  // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
   final gerador = GeradorSnapshots();
   final monitor = MonitorFluxo();
-  final memoria = MemoriaTestes();
+  final noSimulado = SimuladorNos('nó_espelho');
 
-  final watchHound = PluginWatchHound();
-  final purificador = PluginPurificador();
-  final organix = PluginOrganix();
-  final cyberGuard = PluginCyberGuard();
-  final digitalForge = PluginDigitalForge();
-
-  // 🧬 Inicia nós simulados
-  simulador.criarNos();
-
-  // ⚡ Inicia geração de snapshots
-  gerador.iniciar();
   gerador.stream.listen((snapshot) {
     monitor.escutarSnapshot(snapshot);
-    organix.registrar(snapshot);
-
-    // 🐾 Vigilância
-    watchHound.monitorar('agressivo');
-
-    // 🛡️ Segurança
-    cyberGuard.validarTransacao(snapshot.id, 'nó_0', snapshot.carga);
-
-    // 🔨 Forja digital
-    if (snapshot.status == 'anômalo') {
-      digitalForge.forjarAgente('AgenteDeContenção', config: {'origem': snapshot.id});
-    }
-
-    // 🧼 Purificação
-    if (snapshot.status == 'sobrecarga') {
-      purificador.limpar(snapshot.id);
-    }
+    noSimulado.escutar(snapshot);
   });
 
-  // ⏳ Ritual de encerramento após 30 segundos
-  Future.delayed(Duration(seconds: 30), () {
-    final relatorio = monitor.coletarDados();
-    memoria.salvar(relatorio);
-
-    print('\n📊 Relatório Final:');
-    print(relatorio);
-
-    print('\n📚 Rituais salvos:');
-    print(memoria.listarRituais());
-
-    simulador.encerrarNos();
-    gerador.parar();
-  });
-}
+  gerador
