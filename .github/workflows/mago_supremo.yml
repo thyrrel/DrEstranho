@@ -3,6 +3,7 @@
 # ┃ 📍 Roda na MAIN | Sem detectar .dart inicial | Sem shell | API apenas     ┃
 # ┃ 🔮 byThyrrel | Jobs com NOME do artefato | Clicáveis para invocação       ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 name: Mago Supremo
 
 on:
@@ -34,7 +35,7 @@ jobs:
           script: |
             const prompt = `${{ inputs.prompt }}`;
             const destino = '${{ inputs.destino }}';
-            const nome    = 'ritual_' + Math.random().toString(36).slice(2); // único
+            const nome    = 'ritual_' + Math.random().toString(36).slice(2);
             const code    = `// Ritual: ${nome}\n${prompt}\nvoid main() => print("${nome} invocado -> ${destino}");`;
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
@@ -49,6 +50,7 @@ jobs:
   acompanhar_fluxo:
     name: Acompanhar fluxo do artefato
     needs: solicitar_e_criar
+    runs-on: ubuntu-latest
     outputs:
       aprovado: ${{ steps.teste.outputs.aprovado }}
     steps:
@@ -103,7 +105,7 @@ jobs:
   listar_dimensoes:
     name: Listar dimensões finais
     needs: acompanhar_fluxo
-    if: always()
+    runs-on: ubuntu-latest
     outputs:
       instrumentos: ${{ steps.listas.outputs.instrumentos }}
       grimorio: ${{ steps.listas.outputs.grimorio }}
@@ -135,6 +137,7 @@ jobs:
   invocar_instrumentos:
     name: Instrumentos-Mágicos
     needs: listar_dimensoes
+    runs-on: ubuntu-latest
     if: fromJson(needs.listar_dimensoes.outputs.instrumentos)[0]
     strategy:
       fail-fast: false
@@ -147,6 +150,7 @@ jobs:
   invocar_grimorio:
     name: GRIMORIO
     needs: listar_dimensoes
+    runs-on: ubuntu-latest
     if: fromJson(needs.listar_dimensoes.outputs.grimorio)[0]
     strategy:
       fail-fast: false
@@ -159,6 +163,7 @@ jobs:
   invocar_extraplanares:
     name: ExtraPlanares
     needs: listar_dimensoes
+    runs-on: ubuntu-latest
     if: fromJson(needs.listar_dimensoes.outputs.extraplanares)[0]
     strategy:
       fail-fast: false
