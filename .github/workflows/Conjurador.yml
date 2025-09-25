@@ -1,57 +1,51 @@
-name: 🧙‍♂️ Conjurador
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🔮 Conjurador.yml - Workflow dimensional invocado por Tutor-Demoníaco┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: Conjurador Dimensional
 
 on:
+  push:
+    paths:
+      - 'recipes/*.txt'
   workflow_dispatch:
-    inputs:
-      ritual:
-        description: "Nome do ritual a ser conjurado"
-        required: true
-        default: "vigilancia_silenciosa"
 
 jobs:
-  passo_1_gerar:
-    name: 🧪 Gerar artefatos
+  ritual:
+    name: 🧙‍♂️ Ritual de Invocação
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout do repositório
+      - name: 📦 Checkout do Grimório
         uses: actions/checkout@v3
 
-      - name: Instalar Dart
-        uses: dart-lang/setup-dart@v1
-
-      - name: Executar Gerador Ritualico
+      - name: 🔍 Identificar ritual criado
         run: |
-          echo "🔧 Gerando ritual: ${{ github.event.inputs.ritual }}"
-          dart instrumentos_magicos/gerador_ritualico.dart ${{ github.event.inputs.ritual }}
+          echo "📜 Procurando arquivos em recipes/"
+          ls recipes/*.txt || echo "Nenhum ritual encontrado."
 
-  passo_2_migrar:
-    name: 📦 Migrar para Grimório
-    needs: passo_1_gerar
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v3
-
-      - name: Instalar Dart
-        uses: dart-lang/setup-dart@v1
-
-      - name: Executar Migrador Grimório
+      - name: 🧪 Validar estrutura do ritual
         run: |
-          echo "📦 Migrando ritual: ${{ github.event.inputs.ritual }}"
-          dart instrumentos_magicos/migrador_grimorio.dart ${{ github.event.inputs.ritual }}
+          for file in recipes/*.txt; do
+            echo "🔍 Validando $file"
+            grep -q "nome:" "$file" && grep -q "destino:" "$file" && echo "✅ Estrutura válida" || echo "⚠️ Estrutura incompleta"
+          done
 
-  passo_3_selar:
-    name: 🔮 Selar com aprovação
-    needs: passo_2_migrar
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v3
-
-      - name: Instalar Dart
-        uses: dart-lang/setup-dart@v1
-
-      - name: Executar Selador Demoníaco
+      - name: 🧠 Registrar ritual na memória
         run: |
-          echo "🔮 Selando ritual: ${{ github.event.inputs.ritual }}"
-          dart instrumentos_magicos/selador_demoníaco.dart ${{ github.event.inputs.ritual }}
+          echo "🧠 Ritual registrado na malha dimensional"
+          echo "status: em teste" >> recipes/status.log
+
+      - name: 🚀 Simular execução dimensional
+        run: |
+          echo "🚀 Executando ritual..."
+          sleep 2
+          echo "✅ Ritual concluído com sucesso"
+
+      - name: 📤 Comitar evolução do ritual
+        run: |
+          git config user.name "Tutor-Demoníaco"
+          git config user.email "ritualista@vdf.com"
+          git add recipes/status.log
+          git commit -m "Tutor-Demoníaco: ritual validado e em teste"
+          git push
