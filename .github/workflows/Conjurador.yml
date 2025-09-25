@@ -1,18 +1,25 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🔮 Conjurador.yml - Workflow que escuta rituais criados por DrEstranho┃
+# ┃ 🧙‍♂️ DrEstranho.yml - Criação inicial do ritual em recipes/          ┃
+# ┃ 📍 Executado na branch main, escreve em Tutor-Demoníaco/recipes/     ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-name: Conjurador Dimensional
+name: Criação de Ritual por DrEstranho
 
 on:
-  push:
-    paths:
-      - 'recipes/**'
   workflow_dispatch:
+    inputs:
+      nome:
+        description: 'Nome do ritual'
+        required: true
+        type: string
+      destino:
+        description: 'Destino dimensional'
+        required: true
+        type: string
 
 jobs:
-  ritual:
-    name: 🧙‍♂️ Invocação Inicial do Ritual
+  criar_ritual:
+    name: ✨ Criar ritual em recipes/
     runs-on: ubuntu-latest
 
     steps:
@@ -23,50 +30,22 @@ jobs:
         uses: actions/checkout@v3
 
       # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-      # ┃ 🔍 Etapa 2 - Identificar novo ritual                     ┃
+      # ┃ 🧾 Etapa 2 - Criar arquivo ritualístico                   ┃
       # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-      - name: 🔍 Identificar novo ritual criado
+      - name: 🧾 Criar arquivo ritualístico
         run: |
-          echo "📜 Procurando rituais em recipes/"
-          ls recipes/*.txt || echo "⚠️ Nenhum ritual .txt encontrado."
+          mkdir -p Tutor-Demoníaco/recipes
+          echo "nome: ${{ inputs.nome }}" > Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
+          echo "destino: ${{ inputs.destino }}" >> Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
+          echo "🧙 Ritual '${{ inputs.nome }}' criado com destino '${{ inputs.destino }}'"
 
       # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-      # ┃ 🧪 Etapa 3 - Validar estrutura do ritual                 ┃
+      # ┃ 📤 Etapa 3 - Comitar ritual criado                        ┃
       # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-      - name: 🧪 Validar estrutura do ritual
+      - name: 📤 Comitar ritual criado
         run: |
-          for file in recipes/*.txt; do
-            echo "🔍 Validando $file"
-            if grep -q "nome:" "$file" && grep -q "destino:" "$file"; then
-              echo "✅ Estrutura válida"
-            else
-              echo "⚠️ Estrutura incompleta"
-            fi
-          done
-
-      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-      # ┃ 🧠 Etapa 4 - Registrar ritual na malha                   ┃
-      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-      - name: 🧠 Registrar ritual na malha
-        run: |
-          echo "🧠 Ritual registrado na malha dimensional"
-          echo "status: em teste" >> recipes/status.log
-
-      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-      # ┃ 🚀 Etapa 5 - Simular envio para LIMBO                    ┃
-      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-      - name: 🚀 Simular envio para LIMBO
-        run: |
-          echo "🚀 Ritual será transferido para lib/limbo/ na branch LIMBO"
-          echo "📦 Preparando artefato para testes dimensionais"
-
-      # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-      # ┃ 📤 Etapa 6 - Comitar evolução ritualística                ┃
-      # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-      - name: 📤 Comitar evolução ritualística
-        run: |
-          git config --global user.name "Tutor-Demoníaco"
-          git config --global user.email "ritualista@vdf.com"
-          git add recipes/status.log
-          git commit -m "Tutor-Demoníaco: ritual registrado e pronto para LIMBO"
+          git config --global user.name "DrEstranho"
+          git config --global user.email "magus@vdf.com"
+          git add Tutor-Demoníaco/recipes/${{ inputs.nome }}.txt
+          git commit -m "DrEstranho: ritual '${{ inputs.nome }}' criado para '${{ inputs.destino }}'"
           git push
