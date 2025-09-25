@@ -3,8 +3,8 @@
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: tutor
-description: Sistema ritualístico para geração e validação de artefatos mágicos
-version: 1.0.0
+description: Sistema ritualístico para geração, observação e validação de artefatos mágicos
+version: 1.1.0
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -21,3 +21,7 @@ dev_dependencies:
 # - A dependência "path" é usada para manipulação segura de caminhos
 # - "lints" ativa regras de estilo e segurança para conjuração limpa
 # - "test" permite validar artefatos com testes ritualísticos
+# - Versão 1.1.0 inclui:
+#   - DrEstranhoPromptor: criação de prompts em recipes/
+#   - ObservadorDimensional: leitura de status dos rituais
+#   - Integração com fluxo Tutor-Demoníaco, LIMBO e branches finais
