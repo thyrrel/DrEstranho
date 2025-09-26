@@ -3,13 +3,22 @@
 # ┃ 📍 Roda na MAIN | Move para LIMBO | Lista jobs com NOME do artefato       ┃
 # ┃ 🔮 byThyrrel | API GitHub | Sem CLI | Sem txt | Sem falhas                ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 name: Mago Supremo
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "Cole aqui o prompt para o ritual"
+        required: true
+        default: "Escreva seu prompt"
   push:
-    branches: [main]
-    paths: [Tutor-Demoníaco/rituais/*.dart, .github/workflows/mago_supremo.yml]
+    branches:
+      - main
+    paths:
+      - 'Tutor-Demoníaco/rituais/*.dart'
+      - '.github/workflows/mago_supremo.yml'
 
 permissions:
   contents: write
@@ -40,8 +49,7 @@ jobs:
   mover_para_limbo:
     name: Mover para LIMBO
     needs: detectar_chegada
-    runs-on: ubuntu-latest
-    if: fromJson(needs.detectar_chegada.outputs.artefatos)[0]
+    if: ${{ fromJson(needs.detectar_chegada.outputs.artefatos)[0] }}
     strategy:
       fail-fast: false
       matrix:
@@ -70,7 +78,6 @@ jobs:
   testar_limbo:
     name: Testar em LIMBO
     needs: mover_para_limbo
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -82,7 +89,6 @@ jobs:
   listar_dimensoes:
     name: Listar dimensões finais
     needs: testar_limbo
-    runs-on: ubuntu-latest
     outputs:
       instrumentos: ${{ steps.listas.outputs.instrumentos }}
       grimorio: ${{ steps.listas.outputs.grimorio }}
@@ -98,7 +104,7 @@ jobs:
                 const { data } = await github.rest.repos.getContent({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  path,
+                  path: path,
                   ref: 'main'
                 });
                 const darts = Array.isArray(data)
@@ -116,8 +122,7 @@ jobs:
   invocar_instrumentos:
     name: Instrumentos-Mágicos
     needs: listar_dimensoes
-    runs-on: ubuntu-latest
-    if: fromJson(needs.listar_dimensoes.outputs.instrumentos)[0]
+    if: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos)[0] }}
     strategy:
       fail-fast: false
       matrix:
@@ -129,8 +134,7 @@ jobs:
   invocar_grimorio:
     name: GRIMORIO
     needs: listar_dimensoes
-    runs-on: ubuntu-latest
-    if: fromJson(needs.listar_dimensoes.outputs.grimorio)[0]
+    if: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio)[0] }}
     strategy:
       fail-fast: false
       matrix:
@@ -142,8 +146,7 @@ jobs:
   invocar_extraplanares:
     name: ExtraPlanares
     needs: listar_dimensoes
-    runs-on: ubuntu-latest
-    if: fromJson(needs.listar_dimensoes.outputs.extraplanares)[0]
+    if: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares)[0] }}
     strategy:
       fail-fast: false
       matrix:
