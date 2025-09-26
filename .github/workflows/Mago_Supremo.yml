@@ -1,8 +1,8 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙 mago_supremo.yml - Ritual supremo de criação, teste e invocação        ┃
+# ┃ 🧙 mago_supremo_manual.yml - Ritual manual de criação e invocação                        ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-name: Mago Supremo
+name: Mago Supremo Manual
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   inicio:
-    name: ✨ Início do Ritual
+    name: "✨ Início do Ritual"
     runs-on: ubuntu-latest
     outputs:
       artefato: ${{ steps.define.outputs.artefato }}
@@ -25,7 +25,7 @@ jobs:
         id: define
         run: echo "artefato=${{ github.event.inputs.invocacao }}" >> $GITHUB_OUTPUT
 
-      - name: Criar recipe .txt em Tutor-Demoníaco
+      - name: Criar recipe .txt em Tutor-Demoníaco
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PERSONAL_TOKEN }}
@@ -37,12 +37,12 @@ jobs:
               path: `recipes/${nome}.txt`,
               message: `📜 Recipe criada para ${nome}`,
               content: Buffer.from(`Prompt para ${nome}`).toString('base64'),
-              branch: 'Tutor-Demoníaco'
+              branch: 'Tutor-Demoníaco'
             });
         env:
           ARTEFATO: ${{ steps.define.outputs.artefato }}
 
-      - name: Criar ritual .dart em Tutor-Demoníaco/rituais
+      - name: Criar ritual .dart em Tutor-Demoníaco/rituais
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PERSONAL_TOKEN }}
@@ -51,16 +51,16 @@ jobs:
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              path: `Tutor-Demoníaco/rituais/${nome}.dart`,
+              path: `Tutor-Demoníaco/rituais/${nome}.dart`,
               message: `✨ Ritual criado: ${nome}.dart`,
               content: Buffer.from(`// Ritual gerado para ${nome}`).toString('base64'),
-              branch: 'Tutor-Demoníaco'
+              branch: 'Tutor-Demoníaco'
             });
         env:
           ARTEFATO: ${{ steps.define.outputs.artefato }}
 
   mover_limbo:
-    name: 📦 Mover para LIMBO
+    name: "📦 Mover para LIMBO"
     runs-on: ubuntu-latest
     needs: inicio
     steps:
@@ -73,20 +73,20 @@ jobs:
             const { data: original } = await github.rest.repos.getContent({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              path: `Tutor-Demoníaco/rituais/${nome}.dart`,
-              ref: 'Tutor-Demoníaco'
+              path: `Tutor-Demoníaco/rituais/${nome}.dart`,
+              ref: 'Tutor-Demoníaco'
             });
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
               path: `lib/limbo/${nome}.dart`,
-              message: `🔮 Artefato ${nome} movido para LIMBO`,
+              message: `🌌 Artefato ${nome} movido para LIMBO`,
               content: original.content,
               branch: 'LIMBO'
             });
 
   testar_limbo:
-    name: 🧪 Testar LIMBO
+    name: "✏️ Testar LIMBO"
     runs-on: ubuntu-latest
     needs: mover_limbo
     outputs:
@@ -104,7 +104,7 @@ jobs:
           fi
 
   listar_dimensoes:
-    name: 🌌 Listar dimensões
+    name: "🌌 Listar dimensões"
     runs-on: ubuntu-latest
     needs: testar_limbo
     if: needs.testar_limbo.outputs.aprovado == 'true'
@@ -131,12 +131,13 @@ jobs:
                 return [];
               }
             }
+
             core.setOutput('instrumentos', JSON.stringify(await listDim('Instrumentos-Magicos/instrumentos')));
             core.setOutput('grimorio', JSON.stringify(await listDim('GRIMORIO/rituais')));
             core.setOutput('extraplanares', JSON.stringify(await listDim('ExtraPlanares/extraplanar')));
 
   instrumentos:
-    name: 🎶 Instrumentos-Mágicos
+    name: "🎶 Instrumentos-Mágicos"
     runs-on: ubuntu-latest
     needs: listar_dimensoes
     if: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos) != '[]' }}
@@ -147,7 +148,7 @@ jobs:
       - run: echo "🎵 Artefato ${{ matrix.artefato }} pronto!"
 
   grimorio:
-    name: 📖 GRIMORIO
+    name: "📖 GRIMORIO"
     runs-on: ubuntu-latest
     needs: listar_dimensoes
     if: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio) != '[]' }}
@@ -158,7 +159,7 @@ jobs:
       - run: echo "📜 Artefato ${{ matrix.artefato }} pronto!"
 
   extraplanares:
-    name: 🌠 ExtraPlanares
+    name: "🪐 ExtraPlanares"
     runs-on: ubuntu-latest
     needs: listar_dimensoes
     if: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares) != '[]' }}
