@@ -1,7 +1,7 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ 🧙 mago_supremo.yml - Ritual completo de invocação e observação           ┃
-# ┃ 📍 Prompt colado → Olho executa → Fluxo observado até destino final       ┃
-# ┃ 🔮 byThyrrel | GitHub Web | Estilo dimensional puro                       ┃
+# ┃ 📍 GitHub Web | Estilo byThyrrel | Sem terminal | Sem dependências        ┃
+# ┃ 🔮 Prompt com {nome}.txt → Reescreve → Observa → Ramifica                 ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Mago Supremo
@@ -10,19 +10,45 @@ on:
   workflow_dispatch:
     inputs:
       invocacao:
-        description: "Cole o ritual com a tag {name}.txt"
+        description: "📜 Cole o ritual com a tag {nome}.txt"
         required: true
         type: string
+
+permissions:
+  contents: write
 
 jobs:
   consagrar:
     name: "🧿 Invocação Consagrada"
     runs-on: ubuntu-latest
+    outputs:
+      nome: ${{ steps.extrair.outputs.nome }}
+      prompt: ${{ steps.extrair.outputs.prompt }}
     steps:
-      - name: ✨ Executar o Olho de Agamoto
+      - name: 🔍 Extrair nome e conteúdo
+        id: extrair
         run: |
-          echo "${{ github.event.inputs.invocacao }}" > ritual.txt
-          dart bin/olho_de_agamoto.dart ritual.txt
+          echo 'prompt<<EOF' >> $GITHUB_OUTPUT
+          echo "${{ github.event.inputs.invocacao }}" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+          nome=$(echo "${{ github.event.inputs.invocacao }}" | grep -oP '(?<=\{).+(?=\.txt\})' || echo "ritual_$(date +%s)")
+          echo "nome=$nome" >> $GITHUB_OUTPUT
+
+      - name: ✍️ Reescrever em Tutor-Demoniaco/recipes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const nome = '${{ steps.extrair.outputs.nome }}';
+            const prompt = `${{ steps.extrair.outputs.prompt }}`;
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `recipes/${nome}.txt`,
+              message: `📜 Recipe criada para ${nome}`,
+              content: Buffer.from(prompt).toString('base64'),
+              branch: 'Tutor-Demoniaco'
+            });
 
   observar:
     name: "👁️ Observando"
