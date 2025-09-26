@@ -1,7 +1,5 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙 mago_supremo.yml – Detecta .dart em Tutor-Demoníaco/rituais/           ┃
-# ┃ 📍 Roda na MAIN | Move para LIMBO | Lista jobs com NOME do artefato       ┃
-# ┃ 🔮 byThyrrel | API GitHub | Sem CLI | Sem txt | Sem falhas                ┃
+# ┃ 🧙 mago_supremo.yml - Ritual supremo de invocação e distribuição de artefatos ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Mago Supremo
@@ -49,6 +47,7 @@ jobs:
   mover_para_limbo:
     name: Mover para LIMBO
     needs: detectar_chegada
+    runs-on: ubuntu-latest
     if: ${{ fromJson(needs.detectar_chegada.outputs.artefatos)[0] }}
     strategy:
       fail-fast: false
@@ -78,6 +77,7 @@ jobs:
   testar_limbo:
     name: Testar em LIMBO
     needs: mover_para_limbo
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -89,6 +89,7 @@ jobs:
   listar_dimensoes:
     name: Listar dimensões finais
     needs: testar_limbo
+    runs-on: ubuntu-latest
     outputs:
       instrumentos: ${{ steps.listas.outputs.instrumentos }}
       grimorio: ${{ steps.listas.outputs.grimorio }}
@@ -122,6 +123,7 @@ jobs:
   invocar_instrumentos:
     name: Instrumentos-Mágicos
     needs: listar_dimensoes
+    runs-on: ubuntu-latest
     if: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos)[0] }}
     strategy:
       fail-fast: false
@@ -134,6 +136,7 @@ jobs:
   invocar_grimorio:
     name: GRIMORIO
     needs: listar_dimensoes
+    runs-on: ubuntu-latest
     if: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio)[0] }}
     strategy:
       fail-fast: false
@@ -146,6 +149,7 @@ jobs:
   invocar_extraplanares:
     name: ExtraPlanares
     needs: listar_dimensoes
+    runs-on: ubuntu-latest
     if: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares)[0] }}
     strategy:
       fail-fast: false
@@ -154,3 +158,14 @@ jobs:
     steps:
       - name: Invocar ${{ matrix.artefato }}
         run: echo "🔔 Artefato '${{ matrix.artefato }}' pronto para invocação"
+
+# Sugestões
+# - 🧪 Adicionar testes reais em vez de simulação
+# - 📦 Criar job para promover artefatos para produção
+# - 🔤 Integrar com sistema de aprovação manual via PR
+# - 🧩 Gerar README dinâmico com artefatos invocados
+# - 🎨 Criar badges visuais para cada dimensão
+
+# ✍️ byThyrrel  
+# 💡 Workflow formatado com estilo técnico, seguro e elegante  
+# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
