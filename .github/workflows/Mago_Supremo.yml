@@ -139,7 +139,7 @@ jobs:
     name: 🎶 Instrumentos-Mágicos
     runs-on: ubuntu-latest
     needs: listar_dimensoes
-    if: fromJson(needs.listar_dimensoes.outputs.instrumentos)[0]
+    if: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos) != '[]' }}
     strategy:
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos) }}
@@ -150,7 +150,7 @@ jobs:
     name: 📖 GRIMORIO
     runs-on: ubuntu-latest
     needs: listar_dimensoes
-    if: fromJson(needs.listar_dimensoes.outputs.grimorio)[0]
+    if: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio) != '[]' }}
     strategy:
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio) }}
@@ -161,19 +161,12 @@ jobs:
     name: 🌠 ExtraPlanares
     runs-on: ubuntu-latest
     needs: listar_dimensoes
-    if: fromJson(needs.listar_dimensoes.outputs.extraplanares)[0]
+    if: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares) != '[]' }}
     strategy:
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares) }}
     steps:
       - run: echo "🌌 Artefato ${{ matrix.artefato }} pronto!"
-
-# Sugestões
-# - 🧪 Substituir teste simulado por análise real com `dart analyze`
-# - 📦 Criar job para promover artefatos para produção
-# - 🔤 Integrar com sistema de aprovação manual via PR
-# - 🎨 Gerar README dinâmico com artefatos invocados
-# - 🧩 Criar ritual reverso para banir artefatos do limbo
 
 # ✍️ byThyrrel  
 # 💡 Workflow formatado com estilo técnico, seguro e elegante  
