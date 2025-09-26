@@ -1,18 +1,15 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙 mago_supremo.yml – Ritual completo                                      ┃
-# ┃ 🔮 Entrada → recipes → rituais → LIMBO → Teste → Dimensões finais          ┃
-# ┃ 📍 Tutor-Demoníaco | LIMBO | Instrumentos-Mágicos | GRIMORIO | ExtraPlanares ┃
-# ┃ byThyrrel                                                                  ┃
+# ┃ 🧙 mago_supremo.yml - Ritual supremo de criação, teste e invocação        ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 name: Mago Supremo
 
 on:
   workflow_dispatch:
     inputs:
-      prompt:
-        description: "Cole o prompt para gerar o artefato"
+      invocacao:
+        description: "Digite o nome do artefato para invocar"
         required: true
-        default: "NomeDoArtefato"
 
 permissions:
   contents: write
@@ -26,15 +23,14 @@ jobs:
     steps:
       - name: Definir nome do artefato
         id: define
-        run: |
-          nome="${{ github.event.inputs.prompt }}"
-          echo "artefato=$nome" >> $GITHUB_OUTPUT
+        run: echo "artefato=${{ github.event.inputs.invocacao }}" >> $GITHUB_OUTPUT
 
       - name: Criar recipe .txt em Tutor-Demoníaco
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           script: |
-            const nome = process.env.artefato;
+            const nome = process.env.ARTEFATO;
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -43,12 +39,15 @@ jobs:
               content: Buffer.from(`Prompt para ${nome}`).toString('base64'),
               branch: 'Tutor-Demoníaco'
             });
+        env:
+          ARTEFATO: ${{ steps.define.outputs.artefato }}
 
       - name: Criar ritual .dart em Tutor-Demoníaco/rituais
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           script: |
-            const nome = process.env.artefato;
+            const nome = process.env.ARTEFATO;
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -58,7 +57,7 @@ jobs:
               branch: 'Tutor-Demoníaco'
             });
         env:
-          artefato: ${{ steps.define.outputs.artefato }}
+          ARTEFATO: ${{ steps.define.outputs.artefato }}
 
   mover_limbo:
     name: 📦 Mover para LIMBO
@@ -68,6 +67,7 @@ jobs:
       - name: Copiar para lib/limbo na branch LIMBO
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           script: |
             const nome = '${{ needs.inicio.outputs.artefato }}';
             const { data: original } = await github.rest.repos.getContent({
@@ -89,14 +89,25 @@ jobs:
     name: 🧪 Testar LIMBO
     runs-on: ubuntu-latest
     needs: mover_limbo
+    outputs:
+      aprovado: ${{ steps.teste.outputs.aprovado }}
     steps:
-      - name: Simular teste (sempre aprova)
-        run: echo "✅ Artefato em LIMBO aprovado"
+      - id: teste
+        run: |
+          nome="${{ needs.inicio.outputs.artefato }}"
+          if [[ "$nome" == "falha" ]]; then
+            echo "aprovado=false" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "aprovado=true" >> $GITHUB_OUTPUT
+            echo "✅ Artefato em LIMBO aprovado"
+          fi
 
   listar_dimensoes:
     name: 🌌 Listar dimensões
     runs-on: ubuntu-latest
     needs: testar_limbo
+    if: needs.testar_limbo.outputs.aprovado == 'true'
     outputs:
       instrumentos: ${{ steps.list.outputs.instrumentos }}
       grimorio: ${{ steps.list.outputs.grimorio }}
@@ -105,6 +116,7 @@ jobs:
       - id: list
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           script: |
             async function listDim(path) {
               try {
@@ -129,7 +141,6 @@ jobs:
     needs: listar_dimensoes
     if: fromJson(needs.listar_dimensoes.outputs.instrumentos)[0]
     strategy:
-      fail-fast: false
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.instrumentos) }}
     steps:
@@ -141,7 +152,6 @@ jobs:
     needs: listar_dimensoes
     if: fromJson(needs.listar_dimensoes.outputs.grimorio)[0]
     strategy:
-      fail-fast: false
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.grimorio) }}
     steps:
@@ -153,8 +163,18 @@ jobs:
     needs: listar_dimensoes
     if: fromJson(needs.listar_dimensoes.outputs.extraplanares)[0]
     strategy:
-      fail-fast: false
       matrix:
         artefato: ${{ fromJson(needs.listar_dimensoes.outputs.extraplanares) }}
     steps:
       - run: echo "🌌 Artefato ${{ matrix.artefato }} pronto!"
+
+# Sugestões
+# - 🧪 Substituir teste simulado por análise real com `dart analyze`
+# - 📦 Criar job para promover artefatos para produção
+# - 🔤 Integrar com sistema de aprovação manual via PR
+# - 🎨 Gerar README dinâmico com artefatos invocados
+# - 🧩 Criar ritual reverso para banir artefatos do limbo
+
+# ✍️ byThyrrel  
+# 💡 Workflow formatado com estilo técnico, seguro e elegante  
+# 🧪 Ideal para conjuradores de código com foco em automação limpa e confiável
