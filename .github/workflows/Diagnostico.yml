@@ -1,0 +1,43 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🔍 diagnostico_actions.yml                  ┃
+# ┃ 📍 Teste para descobrir o problema          ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: 🔍 Diagnóstico Actions
+
+on: 
+  workflow_dispatch: {}
+  push:
+    branches: [main, master]
+
+jobs:
+  investigar:
+    name: 🕵️‍♂️ Investigar Estrutura
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📁 Listar TUDO do Repositório
+        run: |
+          echo "=== ESTRUTURA COMPLETA ==="
+          find . -type f -name "*.yml" -o -name "*.yaml" | head -20
+          echo ""
+          echo "=== WORKFLOWS EXISTENTES ==="
+          ls -la .github/workflows/ 2>/dev/null || echo "❌ Pasta .github/workflows não existe"
+          echo ""
+          echo "=== BRANCHES ==="
+          git branch -a
+          echo ""
+          echo "=== ARQUIVO ATUAL ==="
+          pwd
+          ls -la
+
+      - name: 🔎 Verificar Permissões
+        run: |
+          echo "=== PERMISSIONS ==="
+          echo "GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN != null }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+
+      - name: 📋 Testar Workflow Dispatch
+        run: |
+          echo "✅ Workflow executado com sucesso!"
+          echo "Se você vê esta mensagem, o problema está no mago_supremo.yml"
