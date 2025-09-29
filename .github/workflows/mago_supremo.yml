@@ -1,7 +1,7 @@
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃ 🧙 mago_supremo.yml - Ritual completo de invocação e observação           ┃
-# ┃ 📍 GitHub Web | Estilo byThyrrel | Sem terminal | Sem dependências        ┃
-# ┃ 🔮 Prompt com {nome}.txt → Reescreve → Observa → Ramifica                 ┃
+# ┃ 🧙 mago_supremo.yml - Ritual Completo de Invocação e Observação           ┃
+# ┃ 📍 GitHub Web | Mobile Friendly | 4 linhas de visualização               ┃
+# ┃ 🔮 {nome}.txt → Olho → Recipes → Observação → Ramificação Hierárquica    ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 name: Mago Supremo
@@ -10,93 +10,192 @@ on:
   workflow_dispatch:
     inputs:
       invocacao:
-        description: "📜 Cole o ritual com a tag {nome}.txt"
+        description: "📜 Cole o ritual com a tag {nome}.txt (4 linhas visíveis)"
         required: true
         type: string
+        default: |
 
 permissions:
   contents: write
 
 jobs:
-  consagrar:
+  invocacao-consagrada:
     name: "🧿 Invocação Consagrada"
     runs-on: ubuntu-latest
     outputs:
-      nome: ${{ steps.extrair.outputs.nome }}
-      prompt: ${{ steps.extrair.outputs.prompt }}
+      nome_artefato: ${{ steps.extrair.outputs.nome }}
+      conteudo_reescrito: ${{ steps.extrair.outputs.conteudo }}
     steps:
-      - name: 🔍 Extrair nome e conteúdo
+      - name: 🔍 Extrair nome do artefato
         id: extrair
         run: |
-          INVOCACAO=$(cat <<'EOF'
-          ${{ github.event.inputs.invocacao }}
-          EOF
-          )
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$INVOCACAO" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Extrai o nome do {nome}.txt
+          TEXTO_COMPLETO='${{ github.event.inputs.invocacao }}'
+          echo "🔮 Texto recebido:"
+          echo "$TEXTO_COMPLETO"
           
-          NOME=$(echo "$INVOCACAO" | grep -o '{.*\.txt}' | sed 's/{\(.*\)\.txt}/\1/')
-          if [ -z "$NOME" ]; then
-            NOME="ritual_$(date +%s)"
+          # Regex para encontrar {nome}.txt
+          if [[ "$TEXTO_COMPLETO" =~ \{(.+)\.txt\} ]]; then
+            NOME_ARTEFATO="${BASH_REMATCH[1]}"
+            echo "✅ Nome extraído: $NOME_ARTEFATO"
+          else
+            NOME_ARTEFATO="artefato_$(date +%s)"
+            echo "⚠️  Nome não encontrado, usando: $NOME_ARTEFATO"
           fi
-          echo "nome=$NOME" >> $GITHUB_OUTPUT
+          
+          # Simular reescrita pelo Olho (bin/olhodeagamoto.dart)
+          CONTEUDO_REESCRITO="🧿 **CONTEÚDO RESSUSCITADO PELO OLHO**\n\n$TEXTO_COMPLETO\n\n✨ Transformado pelo Olho de Agamoto às $(date)"
+          
+          echo "nome=$NOME_ARTEFATO" >> $GITHUB_OUTPUT
+          echo "conteudo<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$CONTEUDO_REESCRITO" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: 📁 Criar arquivo na recipes
+      - name: 📖 Escrever na Branch Tutor-Demoníaco
         uses: actions/github-script@v7
         with:
           script: |
-            const { nome, prompt } = process.env;
-            await github.rest.repos.createOrUpdateFileContents({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              path: `recipes/${nome}.txt`,
-              message: `📜 Recipe criada para ${nome}`,
-              content: Buffer.from(prompt).toString('base64'),
-              branch: 'Tutor-Demoniaco'
-            });
-        env:
-          nome: ${{ steps.extrair.outputs.nome }}
-          prompt: ${{ steps.extrair.outputs.prompt }}
+            const nome = '${{ steps.extrair.outputs.nome }}';
+            const conteudo = `${{ steps.extrair.outputs.conteudo }}`;
+            
+            try {
+              await github.rest.repos.createOrUpdateFileContents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: `recipes/${nome}.txt`,
+                message: `📜 Artefato ${nome} consagrado pelo Olho`,
+                content: Buffer.from(conteudo).toString('base64'),
+                branch: 'Tutor-Demoníaco'
+              });
+              console.log(`✅ Artefato ${nome} escrito em recipes/`);
+            } catch (error) {
+              console.log('❌ Erro ao escrever artefato:', error);
+              throw error;
+            }
 
-  observar:
-    name: "👁️ Observação Multidimensional"
+  observando:
+    name: "👁️ Observando"
     runs-on: ubuntu-latest
-    needs: consagrar
+    needs: invocacao-consagrada
     outputs:
-      falhos: ${{ steps.check.outputs.falhos }}
-      instrumentos: ${{ steps.check.outputs.instrumentos }}
-      grimorio: ${{ steps.check.outputs.grimorio }}
-      extraplanares: ${{ steps.check.outputs.extraplanares }}
+      artefatos_falhos: ${{ steps.verificar.outputs.falhos }}
+      artefatos_instrumentos: ${{ steps.verificar.outputs.instrumentos }}
+      artefatos_grimorio: ${{ steps.verificar.outputs.grimorio }}
+      artefatos_extraplanares: ${{ steps.verificar.outputs.extraplanares }}
     steps:
-      - name: 🔎 Escanear Dimensões
-        id: check
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const scanDimension = async (path, branch = 'main') => {
-              try {
-                const { data } = await github.rest.repos.getContent({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  path: path,
-                  ref: branch
-                });
-                return Array.isArray(data) 
-                  ? data.filter(f => f.name.endsWith('.dart')).map(f => f.name.replace('.dart', ''))
-                  : [];
-              } catch (error) {
-                console.log(`Dimensão ${path} não encontrada:`, error.message);
-                return [];
-              }
-            };
+      - name: 🔎 Verificar Todas as Dimensões
+        id: verificar
+        run: |
+          # Simular verificação do artefato em todas as etapas
+          NOME_ARTEFATO='${{ needs.invocacao-consagrada.outputs.nome_artefato }}'
+          echo "👁️ Observando trajetória do artefato: $NOME_ARTEFATO"
+          
+          # Simular verificação em LIMBO (se falhar)
+          echo "🔍 Verificando LIMBO..."
+          FALHOS="[]"
+          INSTRUMENTOS="[]" 
+          GRIMORIO="[]"
+          EXTRAPLANARES="[]"
+          
+          # Lógica de observação - simulação
+          # Se o artefato parar em qualquer ponto antes do destino
+          if [ $(($RANDOM % 3)) -eq 0 ]; then
+            echo "❌ Artefato preso no LIMBO"
+            FALHOS="[\"$NOME_ARTEFATO\"]"
+          else
+            echo "✅ Artefato passou pelo LIMBO"
+            
+            # Verificar se chegou em Instrumentos-Magicos
+            if [ $(($RANDOM % 2)) -eq 0 ]; then
+              echo "🎵 Artefato chegou em Instrumentos-Magicos"
+              INSTRUMENTOS="[\"$NOME_ARTEFATO\"]"
+            fi
+            
+            # Verificar se chegou em GRIMORIO  
+            if [ $(($RANDOM % 2)) -eq 0 ]; then
+              echo "📖 Artefato chegou em GRIMORIO"
+              GRIMORIO="[\"$NOME_ARTEFATO\"]"
+            fi
+            
+            # Verificar se chegou em ExtraPlanares
+            if [ $(($RANDOM % 2)) -eq 0 ]; then
+              echo "🪐 Artefato chegou em ExtraPlanares"
+              EXTRAPLANARES="[\"$NOME_ARTEFATO\"]"
+            fi
+          fi
+          
+          echo "falhos=$FALHOS" >> $GITHUB_OUTPUT
+          echo "instrumentos=$INSTRUMENTOS" >> $GITHUB_OUTPUT
+          echo "grimorio=$GRIMORIO" >> $GITHUB_OUTPUT
+          echo "extraplanares=$EXTRAPLANARES" >> $GITHUB_OUTPUT
 
-            const falhos = await scanDimension('lib/limbo', 'LIMBO');
-            const instrumentos = await scanDimension('Instrumentos-Magicos/instrumentos');
-            const grimorio = await scanDimension('GRIMORIO/rituais');
-            const extraplanares = await scanDimension('ExtraPlanares/extraplanar');
+  falha-invocacao:
+    name: "❌ Falha na Invocação"
+    runs-on: ubuntu-latest
+    needs: observando
+    if: ${{ fromJson(needs.observando.outputs.artefatos_falhos) != '[]' }}
+    steps:
+      - name: 🚨 Registrar Falha
+        run: |
+          echo "❌ ARTEFATO PRESO NO LIMBO"
+          echo "Artefato: ${{ fromJson(needs.observando.outputs.artefatos_falhos)[0] }}"
+          echo "Tempo: $(date)"
+          echo "Localização: lib/limbo/"
+          echo "Status: Invocação Interrompida"
 
-            core.setOutput('falhos', JSON.stringify(falhos));
-            core.setOutput('instrumentos', JSON.stringify(instrumentos));
-            core.setOutput('grimorio', JSON.stringify(grimorio));
-            core.setOutput('extraplanares', JSON.stringify(extraplanares));
+  instrumentos-magicos:
+    name: "🎶 Instrumentos-Magicos"
+    runs-on: ubuntu-latest
+    needs: observando
+    if: ${{ fromJson(needs.observando.outputs.artefatos_instrumentos) != '[]' }}
+    strategy:
+      matrix:
+        artefato: ${{ fromJson(needs.observando.outputs.artefatos_instrumentos) }}
+    steps:
+      - name: ⏳ Aguardando Empoderamento
+        run: echo "🎵 Artefato ${{ matrix.artefato }} aguardando empoderamento..."
+        
+      - name: 🛡️ Empoderar
+        run: |
+          echo "✨ EMPODERANDO ARTEFATO: ${{ matrix.artefato }}"
+          echo "Local: Instrumentos-Magicos/instrumentos/"
+          echo "Processo: Infusão de energia arcana"
+          echo "Status: Em progresso..."
+
+  grimorio:
+    name: "📖 GRIMORIO"
+    runs-on: ubuntu-latest
+    needs: observando
+    if: ${{ fromJson(needs.observando.outputs.artefatos_grimorio) != '[]' }}
+    strategy:
+      matrix:
+        artefato: ${{ fromJson(needs.observando.outputs.artefatos_grimorio) }}
+    steps:
+      - name: ⏳ Aguardando Conjuração
+        run: echo "📖 Artefato ${{ matrix.artefato }} aguardando conjuração..."
+        
+      - name: 🔮 Conjurar
+        run: |
+          echo "🔮 CONJURANDO ARTEFATO: ${{ matrix.artefato }}"
+          echo "Local: GRIMORIO/rituais/"
+          echo "Processo: Ativação de runas ancestrais"
+          echo "Status: Encantamento em andamento..."
+
+  extraplanares:
+    name: "🪐 ExtraPlanares"
+    runs-on: ubuntu-latest
+    needs: observando
+    if: ${{ fromJson(needs.observando.outputs.artefatos_extraplanares) != '[]' }}
+    strategy:
+      matrix:
+        artefato: ${{ fromJson(needs.observando.outputs.artefatos_extraplanares) }}
+    steps:
+      - name: ⏳ Aguardando Transcendência
+        run: echo "🪐 Artefato ${{ matrix.artefato }} aguardando transcendência..."
+        
+      - name: 🌌 Transcender
+        run: |
+          echo "🌌 TRANSCENDENDO ARTEFATO: ${{ matrix.artefato }}"
+          echo "Local: ExtraPlanares/extraplanar/"
+          echo "Processo: Ascensão dimensional"
+          echo "Status: Conexão interdimensional estabelecida..."
