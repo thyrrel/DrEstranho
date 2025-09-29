@@ -1,0 +1,75 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🧙 mago_supremo.yml - Ritual Completo de Invocação e Observação           ┃
+# ┃ 📍 Estrutura Corrigida | Mobile Friendly | 4 linhas visíveis              ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: "🧙 Mago Supremo"
+
+on:
+  workflow_dispatch:
+    inputs:
+      invocacao:
+        description: "📜 Cole o ritual com a tag {nome}.txt"
+        required: true
+        type: string
+        default: |
+          {exemplo.txt}
+          Seu prompt aqui...
+
+permissions:
+  contents: write
+
+jobs:
+  invocacao-consagrada:
+    name: "🧿 Invocação Consagrada"
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🎯 Checkout do Repositório
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: 🔍 Extrair Nome do Artefato
+        id: extrair
+        run: |
+          echo "📥 Texto recebido:"
+          echo "${{ github.event.inputs.invocacao }}"
+          
+          # Extrair {nome}.txt
+          if echo "${{ github.event.inputs.invocacao }}" | grep -qE '\{.*\.txt\}'; then
+            NOME=$(echo "${{ github.event.inputs.invocacao }}" | grep -oE '\{.*\.txt\}' | sed 's/[{}]//g' | sed 's/\.txt//')
+            echo "✅ Nome extraído: $NOME"
+          else
+            NOME="artefato_$(date +%s)"
+            echo "⚠️  Usando nome padrão: $NOME"
+          fi
+          
+          echo "nome=$NOME" >> $GITHUB_OUTPUT
+
+      - name: 📖 Criar Arquivo na Recipes
+        run: |
+          mkdir -p recipes
+          echo "# Artefato: ${{ steps.extrair.outputs.nome }}" > recipes/${{ steps.extrair.outputs.nome }}.txt
+          echo "# Criado em: $(date)" >> recipes/${{ steps.extrair.outputs.nome }}.txt
+          echo "# Conteúdo:" >> recipes/${{ steps.extrair.outputs.nome }}.txt
+          echo "${{ github.event.inputs.invocacao }}" >> recipes/${{ steps.extrair.outputs.nome }}.txt
+          echo "✅ Arquivo criado: recipes/${{ steps.extrair.outputs.nome }}.txt"
+
+      - name: 📤 Fazer Commit das Alterações
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add recipes/
+          git commit -m "📜 Artefato ${{ steps.extrair.outputs.nome }} consagrado" || echo "Sem mudanças para commit"
+          git push
+
+  observacao-multidimensional:
+    name: "👁️ Observação Multidimensional"
+    runs-on: ubuntu-latest
+    needs: invocacao-consagrada
+    steps:
+      - name: 🔮 Simular Observação
+        run: |
+          echo "👁️ Observando trajetória do artefato: ${{ needs.invocacao-consagrada.outputs.nome }}"
+          echo "📊 Status: Em análise dimensional..."
+          echo "🎯 Próximas verificações: LIMBO → Instrumentos → Grimório → ExtraPlanares"
