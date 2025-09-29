@@ -1,0 +1,102 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ 🧙 mago_supremo.yml - Ritual completo de invocação e observação           ┃
+# ┃ 📍 GitHub Web | Estilo byThyrrel | Sem terminal | Sem dependências        ┃
+# ┃ 🔮 Prompt com {nome}.txt → Reescreve → Observa → Ramifica                 ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+name: Mago Supremo
+
+on:
+  workflow_dispatch:
+    inputs:
+      invocacao:
+        description: "📜 Cole o ritual com a tag {nome}.txt"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  consagrar:
+    name: "🧿 Invocação Consagrada"
+    runs-on: ubuntu-latest
+    outputs:
+      nome: ${{ steps.extrair.outputs.nome }}
+      prompt: ${{ steps.extrair.outputs.prompt }}
+    steps:
+      - name: 🔍 Extrair nome e conteúdo
+        id: extrair
+        run: |
+          INVOCACAO=$(cat <<'EOF'
+          ${{ github.event.inputs.invocacao }}
+          EOF
+          )
+          echo "prompt<<EOF" >> $GITHUB_OUTPUT
+          echo "$INVOCACAO" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          NOME=$(echo "$INVOCACAO" | grep -o '{.*\.txt}' | sed 's/{\(.*\)\.txt}/\1/')
+          if [ -z "$NOME" ]; then
+            NOME="ritual_$(date +%s)"
+          fi
+          echo "nome=$NOME" >> $GITHUB_OUTPUT
+
+      - name: 📁 Criar arquivo na recipes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { nome, prompt } = process.env;
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `recipes/${nome}.txt`,
+              message: `📜 Recipe criada para ${nome}`,
+              content: Buffer.from(prompt).toString('base64'),
+              branch: 'Tutor-Demoniaco'
+            });
+        env:
+          nome: ${{ steps.extrair.outputs.nome }}
+          prompt: ${{ steps.extrair.outputs.prompt }}
+
+  observar:
+    name: "👁️ Observação Multidimensional"
+    runs-on: ubuntu-latest
+    needs: consagrar
+    outputs:
+      falhos: ${{ steps.check.outputs.falhos }}
+      instrumentos: ${{ steps.check.outputs.instrumentos }}
+      grimorio: ${{ steps.check.outputs.grimorio }}
+      extraplanares: ${{ steps.check.outputs.extraplanares }}
+    steps:
+      - name: 🔎 Escanear Dimensões
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const scanDimension = async (path, branch = 'main') => {
+              try {
+                const { data } = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  path: path,
+                  ref: branch
+                });
+                return Array.isArray(data) 
+                  ? data.filter(f => f.name.endsWith('.dart')).map(f => f.name.replace('.dart', ''))
+                  : [];
+              } catch (error) {
+                console.log(`Dimensão ${path} não encontrada:`, error.message);
+                return [];
+              }
+            };
+
+            const falhos = await scanDimension('lib/limbo', 'LIMBO');
+            const instrumentos = await scanDimension('Instrumentos-Magicos/instrumentos');
+            const grimorio = await scanDimension('GRIMORIO/rituais');
+            const extraplanares = await scanDimension('ExtraPlanares/extraplanar');
+
+            core.setOutput('falhos', JSON.stringify(falhos));
+            core.setOutput('instrumentos', JSON.stringify(instrumentos));
+            core.setOutput('grimorio', JSON.stringify(grimorio));
+            core.setOutput('extraplanares', JSON.stringify(extraplanares));
