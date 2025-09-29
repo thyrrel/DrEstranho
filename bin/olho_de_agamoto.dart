@@ -12,8 +12,8 @@ Future<void> main(List<String> args) async {
   final prompt = await file.readAsString();
 
   final nome = extractNome(prompt);
-  final github = GitHub(auth: Authentication.withToken('YOUR_PERSONAL_TOKEN'));
-  final repo = RepositorySlug('usuario', 'repositorio');
+  final github = GitHub(auth: Authentication.withToken('PERSONAL_TOKEN'));
+  final repo = RepositorySlug('thyrrel', 'DrEstranho');
 
   await github.repositories.createOrUpdateFileContents(
     repo,
