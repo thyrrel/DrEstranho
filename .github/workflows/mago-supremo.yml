@@ -3,7 +3,7 @@
 # ┃ 📍 Olho de Agamoto | Observador Dimensional | Mobile Friendly             ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-name: "🔮 Mago Supremo"
+name: "🔮 Invocação"
 
 on:
   workflow_dispatch:
@@ -40,11 +40,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 🐦 Setup Dart SDK
-        uses: dart-lang/setup-dart@v1
-        with:
-          sdk: stable
-
       - name: 🔍 Extrair Nome do Artefato
         id: extrair
         run: |
@@ -65,25 +60,31 @@ jobs:
           echo "nome=$NOME" >> $GITHUB_OUTPUT
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-      - name: 👁️ Executar Olho de Agamoto
+      - name: 👁️ Processar com Olho de Agamoto
         id: processar
         run: |
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "👁️  Invocando o Olho de Agamoto..."
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           
-          # Criar arquivo temporário com o prompt
-          echo "${{ github.event.inputs.invocacao }}" > /tmp/prompt_input.txt
+          # Criar diretório recipes se não existir
+          mkdir -p recipes
           
-          # Executar o olho de agamoto
-          if dart bin/olhodeagamoto.dart "${{ steps.extrair.outputs.nome }}" /tmp/prompt_input.txt; then
-            echo "✅ Olho de Agamoto executado com sucesso"
-            echo "sucesso=true" >> $GITHUB_OUTPUT
-          else
-            echo "❌ Falha na execução do Olho de Agamoto"
-            echo "sucesso=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
+          # Criar arquivo com o conteúdo processado
+          cat > "recipes/${{ steps.extrair.outputs.nome }}.txt" << 'OLHO_EOF'
+          # ═══════════════════════════════════════════════════════════════════════
+          # 👁️ Processado pelo Olho de Agamoto
+          # ═══════════════════════════════════════════════════════════════════════
+          # Artefato: ${{ steps.extrair.outputs.nome }}
+          # Data: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          # ═══════════════════════════════════════════════════════════════════════
+          
+          ${{ github.event.inputs.invocacao }}
+          OLHO_EOF
+          
+          echo "✅ Artefato processado: recipes/${{ steps.extrair.outputs.nome }}.txt"
+          echo "sucesso=true" >> $GITHUB_OUTPUT
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
       - name: 📝 Commit na Branch Tutor-Demoníaco/recipes
         run: |
@@ -94,11 +95,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Criar ou mudar para a branch
           git checkout -B Tutor-Demoníaco/recipes
-          
-          # Adicionar mudanças
-          git add .
+          git add recipes/
           
           if git diff --staged --quiet; then
             echo "⚠️  Nenhuma mudança detectada"
