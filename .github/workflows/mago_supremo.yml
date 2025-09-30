@@ -2,240 +2,400 @@
 # ┃ 🧙 Dr. Estranho - Ritual Completo de Invocação                            ┃
 # ┃ 📍 Olho de Agamoto | Observador Dimensional | Mobile Friendly             ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-name: Invocação
+
+name: 🔮 Invocação
 
 on:
   workflow_dispatch:
     inputs:
-      prompt_invocacao:
-        description: 'Cole aqui o prompt com a tag {name}.txt'
+      invocacao:
+        description: "📜 Cole o prompt com a tag {nome}.txt (4+ linhas visíveis)"
         required: true
         type: string
+        default: |
+          {exemplo}.txt
+          Seu prompt aqui...
+          Linha adicional para melhor visualização
+          Mais uma linha de exemplo
+
+permissions:
+  contents: write
+  issues: write
 
 jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🧿 INVOCAÇÃO CONSAGRADA - Executa o Olho de Agamoto
+  # ═══════════════════════════════════════════════════════════════════════════
   invocacao-consagrada:
-    name: Invocação Consagrada
+    name: "🧿 Invocação Consagrada"
     runs-on: ubuntu-latest
     outputs:
-      artefato_nome: ${{ steps.extrair-nome.outputs.nome }}
-      branch_destino: ${{ steps.verificar-destino.outputs.branch }}
+      artefato_nome: ${{ steps.extrair.outputs.nome }}
+      branch_destino: ${{ steps.processar.outputs.branch }}
+      processamento_ok: ${{ steps.processar.outputs.sucesso }}
     
     steps:
-      - name: Checkout do repositório
+      - name: 🎯 Checkout do Repositório
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
-      
-      - name: Extrair nome do artefato
-        id: extrair-nome
+
+      - name: 🔍 Extrair Nome do Artefato
+        id: extrair
         run: |
-          NOME=$(echo "${{ github.event.inputs.prompt_invocacao }}" | grep -oP '\{.*?\}\.txt' | tr -d '{}')
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📥 Ritual recebido:"
+          echo "${{ github.event.inputs.invocacao }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          # Extrair {nome}.txt
+          if echo "${{ github.event.inputs.invocacao }}" | grep -qE '\{[^}]+\}\.txt'; then
+            NOME=$(echo "${{ github.event.inputs.invocacao }}" | grep -oE '\{[^}]+\}\.txt' | head -1 | sed 's/[{}]//g' | sed 's/\.txt$//')
+            echo "✅ Nome extraído: $NOME"
+          else
+            NOME="artefato_$(date +%s)"
+            echo "⚠️  Tag não encontrada, usando nome padrão: $NOME"
+          fi
+          
           echo "nome=$NOME" >> $GITHUB_OUTPUT
-          echo "Nome do artefato: $NOME"
-      
-      - name: Executar Olho de Agamoto
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: 👁️ Processar com Olho de Agamoto
+        id: processar
         run: |
-          dart bin/olhodeagamoto.dart "${{ github.event.inputs.prompt_invocacao }}"
-      
-      - name: Commit e Push para Tutor-Demoníaco/recipes
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "👁️  Invocando o Olho de Agamoto..."
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          # Criar diretório recipes se não existir
+          mkdir -p recipes
+          
+          # Criar arquivo com o conteúdo processado
+          cat > "recipes/${{ steps.extrair.outputs.nome }}.txt" << 'OLHO_EOF'
+          # ═══════════════════════════════════════════════════════════════════════
+          # 👁️ Processado pelo Olho de Agamoto
+          # ═══════════════════════════════════════════════════════════════════════
+          # Artefato: ${{ steps.extrair.outputs.nome }}
+          # Data: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          # ═══════════════════════════════════════════════════════════════════════
+          
+          ${{ github.event.inputs.invocacao }}
+          OLHO_EOF
+          
+          echo "✅ Artefato processado: recipes/${{ steps.extrair.outputs.nome }}.txt"
+          echo "sucesso=true" >> $GITHUB_OUTPUT
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: 📝 Commit na Branch Tutor-Demoníaco/recipes
         run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📝 Preparando commit na branch Tutor-Demoníaco/recipes"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
           git checkout -B Tutor-Demoníaco/recipes
-          git add .
-          git commit -m "Invocação: ${{ steps.extrair-nome.outputs.nome }}"
-          git push origin Tutor-Demoníaco/recipes --force
-      
-      - name: Verificar destino do artefato
-        id: verificar-destino
+          git add recipes/
+          
+          if git diff --staged --quiet; then
+            echo "⚠️  Nenhuma mudança detectada"
+          else
+            git commit -m "🧿 Invocação: ${{ steps.extrair.outputs.nome }}.txt"
+            git push origin Tutor-Demoníaco/recipes --force
+            echo "✅ Artefato consagrado na branch Tutor-Demoníaco/recipes"
+          fi
+
+      - name: 🔎 Identificar Branch Destino
+        id: identificar
         run: |
-          # Aguarda processamento e verifica em qual branch o artefato chegou
-          sleep 5
-          for branch in Instrumentos-Magicos GRIMORIO ExtraPlanares; do
-            if git ls-remote --heads origin $branch | grep -q $branch; then
-              git fetch origin $branch
-              if git diff --name-only origin/$branch | grep -q "${{ steps.extrair-nome.outputs.nome }}"; then
-                echo "branch=$branch" >> $GITHUB_OUTPUT
-                exit 0
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🔎 Aguardando propagação do artefato..."
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          sleep 3
+          
+          ARQUIVO="${{ steps.extrair.outputs.nome }}.txt"
+          BRANCH_ENCONTRADA="none"
+          
+          for BRANCH in Instrumentos-Magicos GRIMORIO ExtraPlanares; do
+            echo "🔍 Verificando branch: $BRANCH"
+            
+            if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+              git fetch origin "$BRANCH"
+              
+              if git show "origin/$BRANCH:recipes/$ARQUIVO" >/dev/null 2>&1; then
+                BRANCH_ENCONTRADA="$BRANCH"
+                echo "✅ Artefato encontrado em: $BRANCH"
+                break
               fi
             fi
           done
-          echo "branch=none" >> $GITHUB_OUTPUT
+          
+          echo "branch=$BRANCH_ENCONTRADA" >> $GITHUB_OUTPUT
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 👁️ OBSERVANDO - Monitora o artefato em todas as etapas
+  # ═══════════════════════════════════════════════════════════════════════════
   observando:
-    name: Observando
-    needs: invocacao-consagrada
+    name: "👁️ Observando"
     runs-on: ubuntu-latest
+    needs: invocacao-consagrada
     if: always()
+    outputs:
+      status: ${{ steps.monitorar.outputs.status }}
     
     steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
-      
-      - name: Monitorar progresso do artefato
+      - name: 🔮 Monitorar Trajetória do Artefato
         id: monitorar
         run: |
-          echo "Observando artefato: ${{ needs.invocacao-consagrada.outputs.artefato_nome }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "👁️  OBSERVAÇÃO MULTIDIMENSIONAL ATIVADA"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📜 Artefato: ${{ needs.invocacao-consagrada.outputs.artefato_nome }}"
+          echo "🌀 Branch Origem: Tutor-Demoníaco/recipes"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           
-          # Simula monitoramento (você deve adaptar para sua lógica real)
-          TIMEOUT=300
-          ELAPSED=0
-          INTERVAL=10
+          PROCESSAMENTO="${{ needs.invocacao-consagrada.outputs.processamento_ok }}"
+          DESTINO="${{ needs.invocacao-consagrada.outputs.branch_destino }}"
           
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            # Verifica se o artefato chegou ao destino
-            if [ "${{ needs.invocacao-consagrada.outputs.branch_destino }}" != "none" ]; then
-              echo "status=sucesso" >> $GITHUB_OUTPUT
-              echo "Artefato chegou à branch: ${{ needs.invocacao-consagrada.outputs.branch_destino }}"
-              exit 0
-            fi
-            
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-            echo "Observando... ${ELAPSED}s decorridos"
-          done
+          if [ "$PROCESSAMENTO" != "true" ]; then
+            echo "❌ Processamento falhou na invocação"
+            echo "status=falha" >> $GITHUB_OUTPUT
+            exit 1
+          fi
           
-          echo "status=falha" >> $GITHUB_OUTPUT
-          exit 1
-      
-      - name: Registrar observação
-        if: success()
-        run: |
-          echo "✓ Artefato processado com sucesso"
-          echo "Branch destino: ${{ needs.invocacao-consagrada.outputs.branch_destino }}"
+          if [ "$DESTINO" = "none" ]; then
+            echo "⏳ Artefato ainda em trânsito dimensional"
+            echo "status=transito" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Artefato chegou ao destino: $DESTINO"
+            echo "status=sucesso" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ❌ FALHA NA INVOCAÇÃO - Dispara quando algo dá errado
+  # ═══════════════════════════════════════════════════════════════════════════
   falha-na-invocacao:
-    name: Falha na Invocação
-    needs: [invocacao-consagrada, observando]
+    name: "❌ Falha na Invocação"
     runs-on: ubuntu-latest
-    if: failure()
+    needs: [invocacao-consagrada, observando]
+    if: failure() || needs.observando.outputs.status == 'falha'
     
     steps:
-      - name: Registrar falha
+      - name: 🚨 Registrar Falha Crítica
         run: |
-          echo "❌ A invocação falhou!"
-          echo "Artefato: ${{ needs.invocacao-consagrada.outputs.artefato_nome }}"
-          echo "Verifique os logs para mais detalhes"
-      
-      - name: Criar issue de falha
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🚨 ALERTA: FALHA NA INVOCAÇÃO DETECTADA"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📜 Artefato: ${{ needs.invocacao-consagrada.outputs.artefato_nome }}"
+          echo "⚠️  O ritual foi interrompido"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: 📋 Criar Issue de Falha
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.create({
+            await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: '🔴 Falha na Invocação: ${{ needs.invocacao-consagrada.outputs.artefato_nome }}',
-              body: 'A invocação do artefato falhou durante o processamento. Verifique os logs da action.',
-              labels: ['invocacao-falha', 'bug']
+              body: `## 🚨 Ritual Interrompido
+              
+              **Artefato:** \`${{ needs.invocacao-consagrada.outputs.artefato_nome }}.txt\`
+              **Workflow Run:** #${context.runNumber}
+              
+              ### 📊 Detalhes
+              - ⏰ Data/Hora: ${new Date().toISOString()}
+              - 🔗 Link: ${context.payload.repository.html_url}/actions/runs/${context.runId}
+              
+              ### 🔍 Ação Necessária
+              Verifique os logs da action para identificar o ponto de falha.`,
+              labels: ['invocacao-falha', '🔴-critico']
             });
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🗡️ INSTRUMENTOS MÁGICOS - Branch para artefatos de poder
+  # ═══════════════════════════════════════════════════════════════════════════
   instrumentos-magicos:
-    name: Instrumentos Mágicos
-    needs: [invocacao-consagrada, observando]
+    name: "🗡️ Instrumentos Mágicos"
     runs-on: ubuntu-latest
-    if: success() && needs.invocacao-consagrada.outputs.branch_destino == 'Instrumentos-Magicos'
+    needs: [invocacao-consagrada, observando]
+    if: needs.observando.outputs.status == 'sucesso' && needs.invocacao-consagrada.outputs.branch_destino == 'Instrumentos-Magicos'
     outputs:
       artefatos: ${{ steps.listar.outputs.lista }}
     
     steps:
-      - name: Checkout da branch
+      - name: 🎯 Checkout Instrumentos Mágicos
         uses: actions/checkout@v4
         with:
           ref: Instrumentos-Magicos
-      
-      - name: Listar artefatos
+
+      - name: 📋 Listar Todos os Artefatos
         id: listar
         run: |
-          ARTEFATOS=$(find . -name "*.txt" -type f | jq -R -s -c 'split("\n")[:-1]')
-          echo "lista=$ARTEFATOS" >> $GITHUB_OUTPUT
-          echo "Artefatos encontrados: $ARTEFATOS"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🗡️  INSTRUMENTOS MÁGICOS DETECTADOS"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          if [ -d "recipes" ]; then
+            ARTEFATOS=$(find recipes -name "*.txt" -type f -exec basename {} .txt \; | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "lista=$ARTEFATOS" >> $GITHUB_OUTPUT
+            
+            echo "$ARTEFATOS" | jq -r '.[]' | while read artefato; do
+              echo "⚔️  $artefato"
+            done
+          else
+            echo "lista=[]" >> $GITHUB_OUTPUT
+            echo "⚠️  Pasta recipes não encontrada"
+          fi
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 📖 GRIMÓRIO - Branch para feitiços e encantamentos
+  # ═══════════════════════════════════════════════════════════════════════════
   grimorio:
-    name: GRIMORIO
-    needs: [invocacao-consagrada, observando]
+    name: "📖 GRIMORIO"
     runs-on: ubuntu-latest
-    if: success() && needs.invocacao-consagrada.outputs.branch_destino == 'GRIMORIO'
+    needs: [invocacao-consagrada, observando]
+    if: needs.observando.outputs.status == 'sucesso' && needs.invocacao-consagrada.outputs.branch_destino == 'GRIMORIO'
     outputs:
       artefatos: ${{ steps.listar.outputs.lista }}
     
     steps:
-      - name: Checkout da branch
+      - name: 🎯 Checkout GRIMORIO
         uses: actions/checkout@v4
         with:
           ref: GRIMORIO
-      
-      - name: Listar artefatos
+
+      - name: 📋 Listar Todos os Artefatos
         id: listar
         run: |
-          ARTEFATOS=$(find . -name "*.txt" -type f | jq -R -s -c 'split("\n")[:-1]')
-          echo "lista=$ARTEFATOS" >> $GITHUB_OUTPUT
-          echo "Artefatos encontrados: $ARTEFATOS"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📖 GRIMÓRIO DE FEITIÇOS DETECTADO"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          if [ -d "recipes" ]; then
+            ARTEFATOS=$(find recipes -name "*.txt" -type f -exec basename {} .txt \; | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "lista=$ARTEFATOS" >> $GITHUB_OUTPUT
+            
+            echo "$ARTEFATOS" | jq -r '.[]' | while read artefato; do
+              echo "📜 $artefato"
+            done
+          else
+            echo "lista=[]" >> $GITHUB_OUTPUT
+            echo "⚠️  Pasta recipes não encontrada"
+          fi
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🌌 EXTRAPLANARES - Branch para entidades de outras dimensões
+  # ═══════════════════════════════════════════════════════════════════════════
   extraplanares:
-    name: ExtraPlanares
-    needs: [invocacao-consagrada, observando]
+    name: "🌌 ExtraPlanares"
     runs-on: ubuntu-latest
-    if: success() && needs.invocacao-consagrada.outputs.branch_destino == 'ExtraPlanares'
+    needs: [invocacao-consagrada, observando]
+    if: needs.observando.outputs.status == 'sucesso' && needs.invocacao-consagrada.outputs.branch_destino == 'ExtraPlanares'
     outputs:
       artefatos: ${{ steps.listar.outputs.lista }}
     
     steps:
-      - name: Checkout da branch
+      - name: 🎯 Checkout ExtraPlanares
         uses: actions/checkout@v4
         with:
           ref: ExtraPlanares
-      
-      - name: Listar artefatos
+
+      - name: 📋 Listar Todos os Artefatos
         id: listar
         run: |
-          ARTEFATOS=$(find . -name "*.txt" -type f | jq -R -s -c 'split("\n")[:-1]')
-          echo "lista=$ARTEFATOS" >> $GITHUB_OUTPUT
-          echo "Artefatos encontrados: $ARTEFATOS"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🌌 ENTIDADES EXTRAPLANARES DETECTADAS"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          if [ -d "recipes" ]; then
+            ARTEFATOS=$(find recipes -name "*.txt" -type f -exec basename {} .txt \; | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "lista=$ARTEFATOS" >> $GITHUB_OUTPUT
+            
+            echo "$ARTEFATOS" | jq -r '.[]' | while read artefato; do
+              echo "👁️  $artefato"
+            done
+          else
+            echo "lista=[]" >> $GITHUB_OUTPUT
+            echo "⚠️  Pasta recipes não encontrada"
+          fi
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ⚡ EMPODERAR - Subactions para cada Instrumento Mágico
+  # ═══════════════════════════════════════════════════════════════════════════
   empoderar:
-    name: Empoderar - ${{ matrix.artefato }}
-    needs: instrumentos-magicos
+    name: "⚡ Empoderar → ${{ matrix.artefato }}"
     runs-on: ubuntu-latest
-    if: needs.instrumentos-magicos.outputs.artefatos != '[]'
+    needs: instrumentos-magicos
+    if: needs.instrumentos-magicos.outputs.artefatos != '[]' && needs.instrumentos-magicos.outputs.artefatos != ''
     strategy:
       matrix:
         artefato: ${{ fromJson(needs.instrumentos-magicos.outputs.artefatos) }}
     
     steps:
-      - name: Aguardando confirmação
+      - name: ⏸️ Aguardando Intervenção Manual
         run: |
-          echo "⏸️ Artefato '${{ matrix.artefato }}' aguardando empoderamento"
-          echo "Esta ação ficará em suspenso até intervenção manual"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "⚡ EMPODERAR: ${{ matrix.artefato }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "⏸️  Status: Em suspenso"
+          echo "🎯 Tipo: Instrumento Mágico"
+          echo "⚠️  Aguardando aprovação manual para empoderamento"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🔮 CONJURAR - Subactions para cada feitiço do Grimório
+  # ═══════════════════════════════════════════════════════════════════════════
   conjurar:
-    name: Conjurar - ${{ matrix.artefato }}
-    needs: grimorio
+    name: "🔮 Conjurar → ${{ matrix.artefato }}"
     runs-on: ubuntu-latest
-    if: needs.grimorio.outputs.artefatos != '[]'
+    needs: grimorio
+    if: needs.grimorio.outputs.artefatos != '[]' && needs.grimorio.outputs.artefatos != ''
     strategy:
       matrix:
         artefato: ${{ fromJson(needs.grimorio.outputs.artefatos) }}
     
     steps:
-      - name: Aguardando confirmação
+      - name: ⏸️ Aguardando Intervenção Manual
         run: |
-          echo "⏸️ Artefato '${{ matrix.artefato }}' aguardando conjuração"
-          echo "Esta ação ficará em suspenso até intervenção manual"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🔮 CONJURAR: ${{ matrix.artefato }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "⏸️  Status: Em suspenso"
+          echo "📖 Tipo: Feitiço do Grimório"
+          echo "⚠️  Aguardando aprovação manual para conjuração"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🌠 TRANSCENDER - Subactions para cada entidade ExtraPlanar
+  # ═══════════════════════════════════════════════════════════════════════════
   transcender:
-    name: Transcender - ${{ matrix.artefato }}
-    needs: extraplanares
+    name: "🌠 Transcender → ${{ matrix.artefato }}"
     runs-on: ubuntu-latest
-    if: needs.extraplanares.outputs.artefatos != '[]'
+    needs: extraplanares
+    if: needs.extraplanares.outputs.artefatos != '[]' && needs.extraplanares.outputs.artefatos != ''
     strategy:
       matrix:
         artefato: ${{ fromJson(needs.extraplanares.outputs.artefatos) }}
     
     steps:
-      - name: Aguardando confirmação
+      - name: ⏸️ Aguardando Intervenção Manual
         run: |
-          echo "⏸️ Artefato '${{ matrix.artefato }}' aguardando transcendência"
-          echo "Esta ação ficará em suspenso até intervenção manual"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🌠 TRANSCENDER: ${{ matrix.artefato }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "⏸️  Status: Em suspenso"
+          echo "🌌 Tipo: Entidade ExtraPlanar"
+          echo "⚠️  Aguardando aprovação manual para transcendência"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
